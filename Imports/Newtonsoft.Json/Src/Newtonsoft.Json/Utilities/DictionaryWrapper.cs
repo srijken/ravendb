@@ -35,44 +35,6 @@ using System.Linq;
 
 namespace Raven.Imports.Newtonsoft.Json.Utilities
 {
-#if (NETFX_CORE)
-  internal interface IDictionary : ICollection
-  {
-    object this[object key] { get; set; }
-    void Add(object key, object value);
-    new IDictionaryEnumerator GetEnumerator();
-  }
-
-  internal interface IDictionaryEnumerator : IEnumerator
-  {
-    DictionaryEntry Entry { get; }
-    object Key { get; }
-    object Value { get; }
-  }
-
-  internal struct DictionaryEntry
-  {
-    private readonly object _key;
-    private readonly object _value;
-
-    public DictionaryEntry(object key, object value)
-    {
-      _key = key;
-      _value = value;
-    }
-
-    public object Key
-    {
-      get { return _key; }
-    }
-
-    public object Value
-    {
-      get { return _value; }
-    }
-  }
-#endif
-
   internal interface IWrappedDictionary
     : IDictionary
   {
@@ -81,20 +43,19 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
 
   internal class DictionaryWrapper<TKey, TValue> : IDictionary<TKey, TValue>, IWrappedDictionary
   {
-#if !(NETFX_CORE)
     private readonly IDictionary _dictionary;
-#endif
     private readonly IDictionary<TKey, TValue> _genericDictionary;
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+    private readonly IReadOnlyDictionary<TKey, TValue> _readOnlyDictionary; 
+#endif
     private object _syncRoot;
 
-#if !(NETFX_CORE)
     public DictionaryWrapper(IDictionary dictionary)
     {
       ValidationUtils.ArgumentNotNull(dictionary, "dictionary");
 
       _dictionary = dictionary;
     }
-#endif
 
     public DictionaryWrapper(IDictionary<TKey, TValue> dictionary)
     {
@@ -103,42 +64,54 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
       _genericDictionary = dictionary;
     }
 
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+    public DictionaryWrapper(IReadOnlyDictionary<TKey, TValue> dictionary)
+    {
+      ValidationUtils.ArgumentNotNull(dictionary, "dictionary");
+
+      _readOnlyDictionary = dictionary;
+    }
+#endif
+
     public void Add(TKey key, TValue value)
     {
-#if !NETFX_CORE
       if (_dictionary != null)
         _dictionary.Add(key, value);
+      else if (_genericDictionary != null)
+        _genericDictionary.Add(key, value);
       else
-#endif
-      _genericDictionary.Add(key, value);
+        throw new NotSupportedException();
     }
 
     public bool ContainsKey(TKey key)
     {
-#if !NETFX_CORE
       if (_dictionary != null)
         return _dictionary.Contains(key);
-      else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+      else if (_readOnlyDictionary != null)
+        return _readOnlyDictionary.ContainsKey(key);
 #endif
-      return _genericDictionary.ContainsKey(key);
+      else
+        return _genericDictionary.ContainsKey(key);
     }
 
     public ICollection<TKey> Keys
     {
       get
       {
-#if !NETFX_CORE
         if (_dictionary != null)
           return _dictionary.Keys.Cast<TKey>().ToList();
-        else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+        else if (_readOnlyDictionary != null)
+          return _readOnlyDictionary.Keys.ToList();
 #endif
-        return _genericDictionary.Keys;
+        else
+          return _genericDictionary.Keys;
       }
     }
 
     public bool Remove(TKey key)
     {
-#if !NETFX_CORE
       if (_dictionary != null)
       {
         if (_dictionary.Contains(key))
@@ -151,14 +124,20 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
           return false;
         }
       }
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+      else if (_readOnlyDictionary != null)
+      {
+        throw new NotSupportedException();
+      }
 #endif
-
-      return _genericDictionary.Remove(key);
+      else
+      {
+        return _genericDictionary.Remove(key); 
+      }
     }
 
     public bool TryGetValue(TKey key, out TValue value)
     {
-#if !NETFX_CORE
       if (_dictionary != null)
       {
         if (!_dictionary.Contains(key))
@@ -172,20 +151,29 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
           return true;
         }
       }
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+      else if (_readOnlyDictionary != null)
+      {
+        throw new NotSupportedException();
+      }
 #endif
-
-      return _genericDictionary.TryGetValue(key, out value);
+      else
+      {
+        return _genericDictionary.TryGetValue(key, out value);
+      }
     }
 
     public ICollection<TValue> Values
     {
       get
       {
-#if !NETFX_CORE
         if (_dictionary != null)
           return _dictionary.Values.Cast<TValue>().ToList();
-        else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+        else if (_readOnlyDictionary != null)
+          return _readOnlyDictionary.Values.ToList();
 #endif
+        else
           return _genericDictionary.Values;
       }
     }
@@ -194,56 +182,66 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
     {
       get
       {
-#if !NETFX_CORE
         if (_dictionary != null)
           return (TValue)_dictionary[key];
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+        else if (_readOnlyDictionary != null)
+          return _readOnlyDictionary[key];
 #endif
-        return _genericDictionary[key];
+        else
+          return _genericDictionary[key];
       }
       set
       {
-#if !NETFX_CORE
         if (_dictionary != null)
           _dictionary[key] = value;
-        else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+        else if (_readOnlyDictionary != null)
+          throw new NotSupportedException();
 #endif
-        _genericDictionary[key] = value;
+        else
+          _genericDictionary[key] = value;
       }
     }
 
     public void Add(KeyValuePair<TKey, TValue> item)
     {
-#if !NETFX_CORE
       if (_dictionary != null)
         ((IList)_dictionary).Add(item);
-      else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+      else if (_readOnlyDictionary != null)
+        throw new NotSupportedException();
 #endif
-      _genericDictionary.Add(item);
+      else if (_genericDictionary != null)
+        _genericDictionary.Add(item);
     }
 
     public void Clear()
     {
-#if !NETFX_CORE
       if (_dictionary != null)
         _dictionary.Clear();
-      else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+      else if (_readOnlyDictionary != null)
+        throw new NotSupportedException();
 #endif
-      _genericDictionary.Clear();
+      else
+        _genericDictionary.Clear();
     }
 
     public bool Contains(KeyValuePair<TKey, TValue> item)
     {
-#if !NETFX_CORE
       if (_dictionary != null)
         return ((IList)_dictionary).Contains(item);
-      else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+      else if (_readOnlyDictionary != null)
+        return _readOnlyDictionary.Contains(item);
 #endif
-      return _genericDictionary.Contains(item);
+      else
+        return _genericDictionary.Contains(item);
     }
 
     public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
     {
-#if !NETFX_CORE
       if (_dictionary != null)
       {
         foreach (DictionaryEntry item in _dictionary)
@@ -251,8 +249,13 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
           array[arrayIndex++] = new KeyValuePair<TKey, TValue>((TKey)item.Key, (TValue)item.Value);
         }
       }
-      else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+      else if (_readOnlyDictionary != null)
+      {
+        throw new NotSupportedException();
+      }
 #endif
+      else
       {
         _genericDictionary.CopyTo(array, arrayIndex);
       }
@@ -262,12 +265,14 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
     {
       get
       {
-#if !NETFX_CORE
         if (_dictionary != null)
           return _dictionary.Count;
-        else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+        else if (_readOnlyDictionary != null)
+          return _readOnlyDictionary.Count;
 #endif
-        return _genericDictionary.Count;
+        else
+          return _genericDictionary.Count;
       }
     }
 
@@ -275,18 +280,19 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
     {
       get
       {
-#if !NETFX_CORE
         if (_dictionary != null)
           return _dictionary.IsReadOnly;
-        else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+        else if (_readOnlyDictionary != null)
+          return true;
 #endif
-        return _genericDictionary.IsReadOnly;
+        else
+          return _genericDictionary.IsReadOnly;
       }
     }
 
     public bool Remove(KeyValuePair<TKey, TValue> item)
     {
-#if !NETFX_CORE
       if (_dictionary != null)
       {
         if (_dictionary.Contains(item.Key))
@@ -308,8 +314,13 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
           return true;
         }
       }
-      else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+      else if (_readOnlyDictionary != null)
+      {
+        throw new NotSupportedException();
+      }
 #endif
+      else
       {
         return _genericDictionary.Remove(item);
       }
@@ -317,12 +328,14 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
 
     public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
     {
-#if !NETFX_CORE
       if (_dictionary != null)
         return _dictionary.Cast<DictionaryEntry>().Select(de => new KeyValuePair<TKey, TValue>((TKey)de.Key, (TValue)de.Value)).GetEnumerator();
-      else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+      else if (_readOnlyDictionary != null)
+        return _readOnlyDictionary.GetEnumerator();
 #endif
-      return _genericDictionary.GetEnumerator();
+      else
+        return _genericDictionary.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
@@ -332,33 +345,39 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
 
     void IDictionary.Add(object key, object value)
     {
-#if !NETFX_CORE
       if (_dictionary != null)
         _dictionary.Add(key, value);
-      else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+      else if (_readOnlyDictionary != null)
+        throw new NotSupportedException();
 #endif
-      _genericDictionary.Add((TKey)key, (TValue)value);
+      else
+        _genericDictionary.Add((TKey)key, (TValue)value);
     }
 
     object IDictionary.this[object key]
     {
       get
       {
-#if !NETFX_CORE
         if (_dictionary != null)
           return _dictionary[key];
-        else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+        else if (_readOnlyDictionary != null)
+          return _readOnlyDictionary[(TKey)key];
 #endif
-        return _genericDictionary[(TKey)key];
+        else
+          return _genericDictionary[(TKey)key];
       }
       set
       {
-#if !NETFX_CORE
         if (_dictionary != null)
           _dictionary[key] = value;
-        else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+        else if (_readOnlyDictionary != null)
+          throw new NotSupportedException();
 #endif
-        _genericDictionary[(TKey)key] = (TValue)value;
+        else
+          _genericDictionary[(TKey)key] = (TValue)value;
       }
     }
 
@@ -405,19 +424,24 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
 
     IDictionaryEnumerator IDictionary.GetEnumerator()
     {
-#if !NETFX_CORE
       if (_dictionary != null)
         return _dictionary.GetEnumerator();
-      else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+      else if (_readOnlyDictionary != null)
+        return new DictionaryEnumerator<TKey, TValue>(_readOnlyDictionary.GetEnumerator());
 #endif
-      return new DictionaryEnumerator<TKey, TValue>(_genericDictionary.GetEnumerator());
+      else
+        return new DictionaryEnumerator<TKey, TValue>(_genericDictionary.GetEnumerator());
     }
 
-#if !NETFX_CORE
     bool IDictionary.Contains(object key)
     {
       if (_genericDictionary != null)
         return _genericDictionary.ContainsKey((TKey)key);
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+      else if (_readOnlyDictionary != null)
+        return _readOnlyDictionary.ContainsKey((TKey)key);
+#endif
       else
         return _dictionary.Contains(key);
     }
@@ -428,6 +452,10 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
       {
         if (_genericDictionary != null)
           return false;
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+        else if (_readOnlyDictionary != null)
+          return true;
+#endif
         else
           return _dictionary.IsFixedSize;
       }
@@ -439,55 +467,62 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
       {
         if (_genericDictionary != null)
           return _genericDictionary.Keys.ToList();
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+        else if (_readOnlyDictionary != null)
+          return _readOnlyDictionary.Keys.ToList();
+#endif
         else
           return _dictionary.Keys;
       }
     }
-#endif
 
     public void Remove(object key)
     {
-#if !NETFX_CORE
       if (_dictionary != null)
         _dictionary.Remove(key);
-      else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+      else if (_readOnlyDictionary != null)
+        throw new NotSupportedException();
 #endif
-      _genericDictionary.Remove((TKey)key);
+      else
+        _genericDictionary.Remove((TKey)key);
     }
 
-#if !NETFX_CORE
     ICollection IDictionary.Values
     {
       get
       {
         if (_genericDictionary != null)
           return _genericDictionary.Values.ToList();
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+        else if (_readOnlyDictionary != null)
+          return _readOnlyDictionary.Values.ToList();
+#endif
         else
           return _dictionary.Values;
       }
     }
-#endif
 
     void ICollection.CopyTo(Array array, int index)
     {
-#if !NETFX_CORE
       if (_dictionary != null)
         _dictionary.CopyTo(array, index);
-      else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+      else if (_readOnlyDictionary != null)
+        throw new NotSupportedException();
 #endif
-      _genericDictionary.CopyTo((KeyValuePair<TKey, TValue>[])array, index);
+      else
+        _genericDictionary.CopyTo((KeyValuePair<TKey, TValue>[])array, index);
     }
 
     bool ICollection.IsSynchronized
     {
       get
       {
-#if !NETFX_CORE
         if (_dictionary != null)
           return _dictionary.IsSynchronized;
         else
-#endif
-        return false;
+          return false;
       }
     }
 
@@ -506,12 +541,14 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
     {
       get
       {
-#if !NETFX_CORE
         if (_dictionary != null)
           return _dictionary;
-        else
+#if !(NET40 || NET35 || NET20 || SILVERLIGHT || WINDOWS_PHONE || PORTABLE40)
+        else if (_readOnlyDictionary != null)
+          return _readOnlyDictionary;
 #endif
-        return _genericDictionary;
+        else
+          return _genericDictionary;
       }
     }
   }

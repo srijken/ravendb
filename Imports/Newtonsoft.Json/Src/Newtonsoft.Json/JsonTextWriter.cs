@@ -26,6 +26,9 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE40 || PORTABLE)
+using System.Numerics;
+#endif
 using System.Text;
 using System.IO;
 using System.Xml;
@@ -44,6 +47,8 @@ namespace Raven.Imports.Newtonsoft.Json
     private int _indentation;
     private char _quoteChar;
     private bool _quoteName;
+    private bool[] _charEscapeFlags;
+    private char[] _writeBuffer;
 
     private Base64Encoder Base64Encoder
     {
@@ -83,6 +88,7 @@ namespace Raven.Imports.Newtonsoft.Json
           throw new ArgumentException(@"Invalid JavaScript string quote character. Valid quote characters are ' and "".");
 
         _quoteChar = value;
+        UpdateCharEscapeFlags();
       }
     }
 
@@ -118,6 +124,8 @@ namespace Raven.Imports.Newtonsoft.Json
       _quoteName = true;
       _indentChar = ' ';
       _indentation = 2;
+
+      UpdateCharEscapeFlags();
     }
 
     /// <summary>
@@ -136,7 +144,7 @@ namespace Raven.Imports.Newtonsoft.Json
       base.Close();
 
       if (CloseOutput && _writer != null)
-#if !(NETFX_CORE || PORTABLE)
+#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
         _writer.Close();
 #else
         _writer.Dispose();
@@ -148,7 +156,7 @@ namespace Raven.Imports.Newtonsoft.Json
     /// </summary>
     public override void WriteStartObject()
     {
-      base.WriteStartObject();
+      InternalWriteStart(JsonToken.StartObject, JsonContainerType.Object);
 
       _writer.Write("{");
     }
@@ -158,7 +166,7 @@ namespace Raven.Imports.Newtonsoft.Json
     /// </summary>
     public override void WriteStartArray()
     {
-      base.WriteStartArray();
+      InternalWriteStart(JsonToken.StartArray, JsonContainerType.Array);
 
       _writer.Write("[");
     }
@@ -169,7 +177,7 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="name">The name of the constructor.</param>
     public override void WriteStartConstructor(string name)
     {
-      base.WriteStartConstructor(name);
+      InternalWriteStart(JsonToken.StartConstructor, JsonContainerType.Constructor);
 
       _writer.Write("new ");
       _writer.Write(name);
@@ -204,11 +212,53 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="name">The name of the property.</param>
     public override void WritePropertyName(string name)
     {
-      base.WritePropertyName(name);
+      InternalWritePropertyName(name);
 
-      JavaScriptUtils.WriteEscapedJavaScriptString(_writer, name, _quoteChar, _quoteName);
+      WriteEscapedString(name);
 
       _writer.Write(':');
+    }
+
+    /// <summary>
+    /// Writes the property name of a name/value pair on a JSON object.
+    /// </summary>
+    /// <param name="name">The name of the property.</param>
+    /// <param name="escape">A flag to indicate whether the text should be escaped when it is written as a JSON property name.</param>
+    public override void WritePropertyName(string name, bool escape)
+    {
+      InternalWritePropertyName(name);
+
+      if (escape)
+      {
+        WriteEscapedString(name);
+      }
+      else
+      {
+        if (_quoteName)
+          _writer.Write(_quoteChar);
+
+        _writer.Write(name);
+
+        if (_quoteName)
+          _writer.Write(_quoteChar);
+      }
+
+      _writer.Write(':');
+    }
+
+    internal override void OnStringEscapeHandlingChanged()
+    {
+      UpdateCharEscapeFlags();
+    }
+
+    private void UpdateCharEscapeFlags()
+    {
+      if (StringEscapeHandling == StringEscapeHandling.EscapeHtml)
+        _charEscapeFlags = JavaScriptUtils.HtmlCharEscapeFlags;
+      else if (_quoteChar == '"')
+        _charEscapeFlags = JavaScriptUtils.DoubleQuoteCharEscapeFlags;
+      else
+        _charEscapeFlags = JavaScriptUtils.SingleQuoteCharEscapeFlags;
     }
 
     /// <summary>
@@ -255,11 +305,31 @@ namespace Raven.Imports.Newtonsoft.Json
 
     #region WriteValue methods
     /// <summary>
+    /// Writes a <see cref="Object"/> value.
+    /// An error will raised if the value cannot be written as a single JSON token.
+    /// </summary>
+    /// <param name="value">The <see cref="Object"/> value to write.</param>
+    public override void WriteValue(object value)
+    {
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE || PORTABLE40)
+      if (value is BigInteger)
+      {
+        InternalWriteValue(JsonToken.Integer);
+        WriteValueInternal(((BigInteger)value).ToString(CultureInfo.InvariantCulture), JsonToken.String);
+      }
+      else
+#endif
+      {
+        base.WriteValue(value);
+      }
+    }
+
+    /// <summary>
     /// Writes a null value.
     /// </summary>
     public override void WriteNull()
     {
-      base.WriteNull();
+      InternalWriteValue(JsonToken.Null);
       WriteValueInternal(JsonConvert.Null, JsonToken.Null);
     }
 
@@ -268,7 +338,7 @@ namespace Raven.Imports.Newtonsoft.Json
     /// </summary>
     public override void WriteUndefined()
     {
-      base.WriteUndefined();
+      InternalWriteValue(JsonToken.Undefined);
       WriteValueInternal(JsonConvert.Undefined, JsonToken.Undefined);
     }
 
@@ -278,7 +348,7 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="json">The raw JSON to write.</param>
     public override void WriteRaw(string json)
     {
-      base.WriteRaw(json);
+      InternalWriteRaw();
 
       _writer.Write(json);
     }
@@ -289,11 +359,18 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="String"/> value to write.</param>
     public override void WriteValue(string value)
     {
-      base.WriteValue(value);
+      InternalWriteValue(JsonToken.String);
+
       if (value == null)
         WriteValueInternal(JsonConvert.Null, JsonToken.Null);
       else
-        JavaScriptUtils.WriteEscapedJavaScriptString(_writer, value, _quoteChar, true);
+        WriteEscapedString(value);
+    }
+
+    private void WriteEscapedString(string value)
+    {
+      EnsureWriteBuffer();
+      JavaScriptUtils.WriteEscapedJavaScriptString(_writer, value, _quoteChar, true, _charEscapeFlags, StringEscapeHandling, ref _writeBuffer);
     }
 
     /// <summary>
@@ -302,8 +379,8 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="Int32"/> value to write.</param>
     public override void WriteValue(int value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value), JsonToken.Integer);
+      InternalWriteValue(JsonToken.Integer);
+      WriteIntegerValue(value);
     }
 
     /// <summary>
@@ -313,8 +390,8 @@ namespace Raven.Imports.Newtonsoft.Json
     [CLSCompliant(false)]
     public override void WriteValue(uint value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value), JsonToken.Integer);
+      InternalWriteValue(JsonToken.Integer);
+      WriteIntegerValue(value);
     }
 
     /// <summary>
@@ -323,8 +400,8 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="Int64"/> value to write.</param>
     public override void WriteValue(long value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value), JsonToken.Integer);
+      InternalWriteValue(JsonToken.Integer);
+      WriteIntegerValue(value);
     }
 
     /// <summary>
@@ -334,8 +411,8 @@ namespace Raven.Imports.Newtonsoft.Json
     [CLSCompliant(false)]
     public override void WriteValue(ulong value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value), JsonToken.Integer);
+      InternalWriteValue(JsonToken.Integer);
+      WriteIntegerValue(value);
     }
 
     /// <summary>
@@ -344,8 +421,25 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="Single"/> value to write.</param>
     public override void WriteValue(float value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value), JsonToken.Float);
+      InternalWriteValue(JsonToken.Float);
+      WriteValueInternal(JsonConvert.ToString(value, FloatFormatHandling, QuoteChar, false), JsonToken.Float);
+    }
+
+    /// <summary>
+    /// Writes a <see cref="Nullable{Single}"/> value.
+    /// </summary>
+    /// <param name="value">The <see cref="Nullable{Single}"/> value to write.</param>
+    public override void WriteValue(float? value)
+    {
+      if (value == null)
+      {
+        WriteNull();
+      }
+      else
+      {
+        InternalWriteValue(JsonToken.Float);
+        WriteValueInternal(JsonConvert.ToString(value.Value, FloatFormatHandling, QuoteChar, true), JsonToken.Float);
+      }
     }
 
     /// <summary>
@@ -354,8 +448,25 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="Double"/> value to write.</param>
     public override void WriteValue(double value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value), JsonToken.Float);
+      InternalWriteValue(JsonToken.Float);
+      WriteValueInternal(JsonConvert.ToString(value, FloatFormatHandling, QuoteChar, false), JsonToken.Float);
+    }
+
+    /// <summary>
+    /// Writes a <see cref="Nullable{Double}"/> value.
+    /// </summary>
+    /// <param name="value">The <see cref="Nullable{Double}"/> value to write.</param>
+    public override void WriteValue(double? value)
+    {
+      if (value == null)
+      {
+        WriteNull();
+      }
+      else
+      {
+        InternalWriteValue(JsonToken.Float);
+        WriteValueInternal(JsonConvert.ToString(value.Value, FloatFormatHandling, QuoteChar, true), JsonToken.Float);
+      }
     }
 
     /// <summary>
@@ -364,7 +475,7 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="Boolean"/> value to write.</param>
     public override void WriteValue(bool value)
     {
-      base.WriteValue(value);
+      InternalWriteValue(JsonToken.Boolean);
       WriteValueInternal(JsonConvert.ToString(value), JsonToken.Boolean);
     }
 
@@ -374,8 +485,8 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="Int16"/> value to write.</param>
     public override void WriteValue(short value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value), JsonToken.Integer);
+      InternalWriteValue(JsonToken.Integer);
+      WriteIntegerValue(value);
     }
 
     /// <summary>
@@ -385,8 +496,8 @@ namespace Raven.Imports.Newtonsoft.Json
     [CLSCompliant(false)]
     public override void WriteValue(ushort value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value), JsonToken.Integer);
+      InternalWriteValue(JsonToken.Integer);
+      WriteIntegerValue(value);
     }
 
     /// <summary>
@@ -395,8 +506,8 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="Char"/> value to write.</param>
     public override void WriteValue(char value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value), JsonToken.Integer);
+      InternalWriteValue(JsonToken.String);
+      WriteValueInternal(JsonConvert.ToString(value), JsonToken.String);
     }
 
     /// <summary>
@@ -405,8 +516,8 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="Byte"/> value to write.</param>
     public override void WriteValue(byte value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value), JsonToken.Integer);
+      InternalWriteValue(JsonToken.Integer);
+      WriteIntegerValue(value);
     }
 
     /// <summary>
@@ -416,8 +527,8 @@ namespace Raven.Imports.Newtonsoft.Json
     [CLSCompliant(false)]
     public override void WriteValue(sbyte value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value), JsonToken.Integer);
+      InternalWriteValue(JsonToken.Integer);
+      WriteIntegerValue(value);
     }
 
     /// <summary>
@@ -426,7 +537,7 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="Decimal"/> value to write.</param>
     public override void WriteValue(decimal value)
     {
-      base.WriteValue(value);
+      InternalWriteValue(JsonToken.Float);
       WriteValueInternal(JsonConvert.ToString(value), JsonToken.Float);
     }
 
@@ -436,9 +547,26 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="DateTime"/> value to write.</param>
     public override void WriteValue(DateTime value)
     {
-      base.WriteValue(value);
-      value = JsonConvert.EnsureDateTime(value, DateTimeZoneHandling);
-      JsonConvert.WriteDateTimeString(_writer, value, DateFormatHandling);
+      InternalWriteValue(JsonToken.Date);
+      value = DateTimeUtils.EnsureDateTime(value, DateTimeZoneHandling);
+
+      if (string.IsNullOrEmpty(DateFormatString))
+      {
+        EnsureWriteBuffer();
+
+        int pos = 0;
+        _writeBuffer[pos++] = _quoteChar;
+        pos = DateTimeUtils.WriteDateTimeString(_writeBuffer, pos, value, null, value.Kind, DateFormatHandling);
+        _writeBuffer[pos++] = _quoteChar;
+
+        _writer.Write(_writeBuffer, 0, pos);
+      }
+      else
+      {
+        _writer.Write(_quoteChar);
+        _writer.Write(value.ToString(DateFormatString, Culture));
+        _writer.Write(_quoteChar);
+      }
     }
 
     /// <summary>
@@ -447,10 +575,13 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="T:Byte[]"/> value to write.</param>
     public override void WriteValue(byte[] value)
     {
-      base.WriteValue(value);
-
-      if (value != null)
+      if (value == null)
       {
+        WriteNull();
+      }
+      else
+      {
+        InternalWriteValue(JsonToken.Bytes);
         _writer.Write(_quoteChar);
         Base64Encoder.Encode(value, 0, value.Length);
         Base64Encoder.Flush();
@@ -458,15 +589,32 @@ namespace Raven.Imports.Newtonsoft.Json
       }
     }
 
-#if !PocketPC && !NET20
+#if !NET20
     /// <summary>
     /// Writes a <see cref="DateTimeOffset"/> value.
     /// </summary>
     /// <param name="value">The <see cref="DateTimeOffset"/> value to write.</param>
     public override void WriteValue(DateTimeOffset value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value, DateFormatHandling), JsonToken.Date);
+      InternalWriteValue(JsonToken.Date);
+
+      if (string.IsNullOrEmpty(DateFormatString))
+      {
+        EnsureWriteBuffer();
+
+        int pos = 0;
+        _writeBuffer[pos++] = _quoteChar;
+        pos = DateTimeUtils.WriteDateTimeString(_writeBuffer, pos, (DateFormatHandling == DateFormatHandling.IsoDateFormat) ? value.DateTime : value.UtcDateTime, value.Offset, DateTimeKind.Local, DateFormatHandling);
+        _writeBuffer[pos++] = _quoteChar;
+
+        _writer.Write(_writeBuffer, 0, pos);
+      }
+      else
+      {
+        _writer.Write(_quoteChar);
+        _writer.Write(value.ToString(DateFormatString, Culture));
+        _writer.Write(_quoteChar);
+      }
     }
 #endif
 
@@ -476,8 +624,8 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="Guid"/> value to write.</param>
     public override void WriteValue(Guid value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value), JsonToken.String);
+      InternalWriteValue(JsonToken.String);
+      WriteValueInternal(JsonConvert.ToString(value, _quoteChar), JsonToken.String);
     }
 
     /// <summary>
@@ -486,8 +634,8 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="TimeSpan"/> value to write.</param>
     public override void WriteValue(TimeSpan value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value), JsonToken.String);
+      InternalWriteValue(JsonToken.String);
+      WriteValueInternal(JsonConvert.ToString(value, _quoteChar), JsonToken.String);
     }
 
     /// <summary>
@@ -496,8 +644,15 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="value">The <see cref="Uri"/> value to write.</param>
     public override void WriteValue(Uri value)
     {
-      base.WriteValue(value);
-      WriteValueInternal(JsonConvert.ToString(value), JsonToken.String);
+      if (value == null)
+      {
+        WriteNull();
+      }
+      else
+      {
+        InternalWriteValue(JsonToken.String);
+        WriteValueInternal(JsonConvert.ToString(value, _quoteChar), JsonToken.String);
+      }
     }
     #endregion
 
@@ -507,7 +662,7 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="text">Text to place inside the comment.</param>
     public override void WriteComment(string text)
     {
-      base.WriteComment(text);
+      InternalWriteComment();
 
       _writer.Write("/*");
       _writer.Write(text);
@@ -520,9 +675,57 @@ namespace Raven.Imports.Newtonsoft.Json
     /// <param name="ws">The string of white space characters.</param>
     public override void WriteWhitespace(string ws)
     {
-      base.WriteWhitespace(ws);
+      InternalWriteWhitespace(ws);
 
       _writer.Write(ws);
+    }
+
+    private void EnsureWriteBuffer()
+    {
+      if (_writeBuffer == null)
+        _writeBuffer = new char[64];
+    }
+
+    private void WriteIntegerValue(long value)
+    {
+      EnsureWriteBuffer();
+
+      if (value >= 0 && value <= 9)
+      {
+        _writer.Write((char)('0' + value));
+      }
+      else
+      {
+        ulong uvalue = (value < 0) ? (ulong)-value : (ulong)value;
+
+        if (value < 0)
+          _writer.Write('-');
+
+        WriteIntegerValue(uvalue);
+      }
+    }
+
+    private void WriteIntegerValue(ulong uvalue)
+    {
+      EnsureWriteBuffer();
+
+      if (uvalue <= 9)
+      {
+        _writer.Write((char)('0' + uvalue));
+      }
+      else
+      {
+        int totalLength = MathUtils.IntLength(uvalue);
+        int length = 0;
+
+        do
+        {
+          _writeBuffer[totalLength - ++length] = (char)('0' + (uvalue % 10));
+          uvalue /= 10;
+        } while (uvalue != 0);
+
+        _writer.Write(_writeBuffer, 0, length);
+      }
     }
   }
 }

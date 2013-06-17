@@ -29,9 +29,9 @@ using Raven.Imports.Newtonsoft.Json.Serialization;
 #if !NETFX_CORE
 using NUnit.Framework;
 #else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestFixture = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using TestFixture = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestClassAttribute;
+using Test = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestMethodAttribute;
 #endif
 using Raven.Imports.Newtonsoft.Json.Tests.TestObjects;
 using Raven.Imports.Newtonsoft.Json.Linq;
@@ -102,7 +102,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Serialization
       string json = o.ToString();
     }
 
-#if !NETFX_CORE
+#if !(NETFX_CORE || PORTABLE || PORTABLE40)
     [Test]
     public void MemberSearchFlags()
     {
@@ -177,11 +177,11 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Serialization
 }", json);
     }
 
-#if !(NET35 || NET20 || WINDOWS_PHONE || PORTABLE)
+#if !(NET35 || NET20 || PORTABLE40)
     [Test]
     public void DynamicCamelCasePropertyNames()
     {
-      dynamic o = new DynamicTests.TestDynamicObject();
+      dynamic o = new TestDynamicObject();
       o.Text = "Text!";
       o.Integer = int.MaxValue;
 
@@ -192,6 +192,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Serialization
         });
 
       Assert.AreEqual(@"{
+  ""explicit"": false,
   ""text"": ""Text!"",
   ""integer"": 2147483647,
   ""int"": 0,

@@ -28,9 +28,9 @@ using System.Collections.Generic;
 #if !NETFX_CORE
 using NUnit.Framework;
 #else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestFixture = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using TestFixture = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestClassAttribute;
+using Test = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestMethodAttribute;
 #endif
 using Raven.Imports.Newtonsoft.Json.Linq;
 #if NET20
@@ -243,7 +243,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Linq
     {
       JConstructor c = new JConstructor("Blah");
 
-      ExceptionAssert.Throws<IndexOutOfRangeException>(
+      ExceptionAssert.Throws<JsonException>(
         @"Index 1 outside the bounds of JConstructor.",
         () =>
         {
@@ -279,7 +279,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Linq
     {
       JArray a = new JArray(1, 2, 3, 4, 5);
 
-      ExceptionAssert.Throws<IndexOutOfRangeException>(
+      ExceptionAssert.Throws<JsonException>(
         "Index 1000 outside the bounds of JArray.",
         () =>
         {

@@ -1,48 +1,60 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Raven.Json.Linq;
 using System.Linq;
 
 namespace Raven.Client.Silverlight.MissingFromSilverlight
 {
 	public class NameValueCollection : IEnumerable
 	{
-		private Dictionary<string, List<string>> inner =
-			new Dictionary<string, List<string>>(StringComparer.InvariantCultureIgnoreCase);
+		private readonly Dictionary<string, List<string>> inner = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
 
-		public NameValueCollection()
+		public Dictionary<string, List<string>> Headers
 		{
-			inner = new Dictionary<string, List<string>>(StringComparer.InvariantCultureIgnoreCase);
+			get { return inner; }
 		}
 
-		public Dictionary<string, List<string>> Headers { get { return inner; } }
+		public int Count
+		{
+			get { return inner.Count; }
+		}
+
+		public IEnumerable<string> Keys
+		{
+			get { return inner.Keys; }
+		}
 
 		public IEnumerator GetEnumerator()
 		{
 			return inner.Keys.GetEnumerator();
 		}
 
+		/// <summary>
+		/// Gets the values associated with the specified key from the <see cref='NameValueCollection'/>.
+		/// </summary>
+		/// <param name="header">The header.</param>
+		/// <returns></returns>
 		public string[] GetValues(string header)
 		{
-			var result = new string[inner.Count];
-			var counter = 0;
-			foreach (var list in inner)
-			{
-				result[counter] = string.Join(";", list);
-				counter++;
-			}
-
-			return result;
+			return inner.Where(pair => pair.Key == header)
+			            .Select(pair => pair.Value.ToArray())
+			            .FirstOrDefault();
 		}
 
 		public string this[string key]
 		{
-			get { return inner[key].FirstOrDefault(); }
+			get
+			{
+				List<string> list;
+				if (inner.TryGetValue(key, out list))
+					return list.FirstOrDefault();
+				return null;
+			}
 			set
-			{ 
-				if(inner.ContainsKey(key))
-					inner[key].Add(value);
+			{
+				List<string> list;
+				if (inner.TryGetValue(key, out list))
+					list.Add(value);
 				else
 					inner.Add(key, new List<string>{value});
 			}

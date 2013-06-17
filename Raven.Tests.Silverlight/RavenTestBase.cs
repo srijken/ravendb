@@ -1,12 +1,12 @@
 ﻿using System.Diagnostics;
 using System.Linq;
-using Microsoft.Silverlight.Testing;
 using Raven.Abstractions;
+using Raven.Client;
+using Raven.Client.Document;
+using Raven.Tests.Silverlight.UnitTestProvider;
+
 namespace Raven.Tests.Silverlight
 {
-	using System;
-	using UnitTestProvider;
-
 	public abstract class RavenTestBase : AsynchronousTaskTest
 	{
 		protected const int Port = 8079;
@@ -25,6 +25,11 @@ namespace Raven.Tests.Silverlight
 			return generateNewDatabaseName
 				.Substring(0, generateNewDatabaseName.IndexOf(">"))
 				.Replace("Raven.Tests.Silverlight.", string.Empty) + SystemTime.UtcNow.Ticks;
+		}
+
+		protected IDocumentStore NewDocumentStore()
+		{
+			return new DocumentStore { Url = Url + Port }.Initialize();
 		}
 	}
 }

@@ -25,11 +25,11 @@ namespace Raven.Tests.Silverlight
 			var dbname = GenerateNewDatabaseName();
 			using (var documentStore = new DocumentStore {Url = Url + Port}.Initialize())
 			{
-				yield return documentStore.AsyncDatabaseCommands.EnsureDatabaseExistsAsync(dbname);
+				yield return documentStore.AsyncDatabaseCommands.Admin.EnsureDatabaseExistsAsync(dbname);
 
 				using (var s = documentStore.OpenAsyncSession(dbname))
 				{
-					s.Store(new User {Name = "Ayende"});
+					yield return s.StoreAsync(new User { Name = "Ayende" });
 					yield return s.SaveChangesAsync();
 				}
 
@@ -54,14 +54,14 @@ namespace Raven.Tests.Silverlight
 			{
 				documentStore.Conventions.AllowQueriesOnId = true;
 
-				yield return documentStore.AsyncDatabaseCommands.EnsureDatabaseExistsAsync(dbname);
+				yield return documentStore.AsyncDatabaseCommands.Admin.EnsureDatabaseExistsAsync(dbname);
 
 				var customer = new Customer {Name = "Customer #1", Id = "customer/1", Email = "someone@customer.com"};
 				var order = new Order {Id = "orders/1", Note = "Hello", Customer = new DenormalizedReference {Id = customer.Id, Name = customer.Name}};
 				using (var session = documentStore.OpenAsyncSession(dbname))
 				{
-					session.Store(customer);
-					session.Store(order);
+					yield return session.StoreAsync(customer);
+					yield return session.StoreAsync(order);
 					yield return session.SaveChangesAsync();
 				}
 
@@ -90,11 +90,11 @@ namespace Raven.Tests.Silverlight
 			var dbname = GenerateNewDatabaseName();
 			using (var documentStore = new DocumentStore {Url = Url + Port}.Initialize())
 			{
-				yield return documentStore.AsyncDatabaseCommands.EnsureDatabaseExistsAsync(dbname);
+				yield return documentStore.AsyncDatabaseCommands.Admin.EnsureDatabaseExistsAsync(dbname);
 
 				using (var session = documentStore.OpenAsyncSession(dbname))
 				{
-					session.Store(new Customer {Name = "Customer #1", Id = "customer/1", Email = "someone@customer.com"});
+					yield return session.StoreAsync(new Customer { Name = "Customer #1", Id = "customer/1", Email = "someone@customer.com" });
 					yield return session.SaveChangesAsync();
 				}
 
@@ -111,8 +111,8 @@ namespace Raven.Tests.Silverlight
 				for (int i = 0; i < 50; i++)
 				{
 					query = documentStore.AsyncDatabaseCommands
-						.ForDatabase(dbname)
-						.QueryAsync("Test", indexQuery, null);
+					                     .ForDatabase(dbname)
+					                     .QueryAsync("Test", indexQuery, null);
 					yield return (query);
 
 					if (query.Exception != null)
@@ -123,7 +123,7 @@ namespace Raven.Tests.Silverlight
 
 					if (query.Result.IsStale)
 					{
-						yield return Delay(100);
+						yield return TaskEx.Delay(100);
 						continue;
 					}
 					yield break;

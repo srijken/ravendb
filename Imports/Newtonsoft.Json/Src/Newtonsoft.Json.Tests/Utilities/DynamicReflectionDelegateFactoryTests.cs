@@ -23,15 +23,16 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(SILVERLIGHT || PORTABLE || NETFX_CORE)
+#if !(SILVERLIGHT || PORTABLE || NETFX_CORE || PORTABLE40)
 using System;
+using System.Diagnostics;
 using System.Reflection;
 #if !NETFX_CORE
 using NUnit.Framework;
 #else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestFixture = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using TestFixture = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestClassAttribute;
+using Test = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestMethodAttribute;
 #endif
 using Raven.Imports.Newtonsoft.Json.Serialization;
 using Raven.Imports.Newtonsoft.Json.Utilities;
@@ -74,6 +75,8 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Utilities
         Assert.AreEqual(m.Name, "Hi");
 
         setter(p, "Hi");
+
+        Assert.AreEqual(p.Name, "Hi");
       });
     }
 
@@ -124,42 +127,6 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Utilities
       JsonSerializerTest.DictionaryKey key = (JsonSerializerTest.DictionaryKey) result;
       Assert.AreEqual("First!", key.Value);
     }
-
-    //[Test]
-    //public void sdfsdf()
-    //{
-    //  string name = "MyAssembly";
-    //  string filename = name + ".dll";
-
-    //  AssemblyName s = new AssemblyName(name);
-
-    //  AssemblyBuilder assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(s, AssemblyBuilderAccess.RunAndSave);
-    //  ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(filename, filename);
-    //  TypeBuilder typeBuilder = moduleBuilder.DefineType("MyType", TypeAttributes.Class, typeof(object));
-    //  MethodBuilder methodBuilder = typeBuilder.DefineMethod("TestSet", MethodAttributes.Public | MethodAttributes.Static, typeof(void), new[] { typeof(object), typeof(object) });
-
-    //  DynamicReflectionDelegateFactory.GenerateCreateSetFieldIL(typeof(ClassWithGuid).GetField("GuidField"), methodBuilder.GetILGenerator());
-    //  typeBuilder.CreateType();
-    //  assemblyBuilder.Save(filename);
-    //}
-
-    //[Test]
-    //public void sdfsdf1()
-    //{
-    //  string name = "MyAssembly1";
-    //  string filename = name + ".dll";
-
-    //  AssemblyName s = new AssemblyName(name);
-
-    //  AssemblyBuilder assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(s, AssemblyBuilderAccess.RunAndSave);
-    //  ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(filename, filename);
-    //  TypeBuilder typeBuilder = moduleBuilder.DefineType("MyType", TypeAttributes.Class, typeof(object));
-    //  MethodBuilder methodBuilder = typeBuilder.DefineMethod("TestSet", MethodAttributes.Public | MethodAttributes.Static, typeof(void), new[] { typeof(object), typeof(object) });
-
-    //  DynamicReflectionDelegateFactory.GenerateCreateSetPropertyIL(typeof(Car).GetProperty("Model"), methodBuilder.GetILGenerator());
-    //  typeBuilder.CreateType();
-    //  assemblyBuilder.Save(filename);
-    //}
   }
 }
 #endif

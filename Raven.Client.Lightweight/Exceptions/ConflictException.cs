@@ -5,6 +5,7 @@
 //-----------------------------------------------------------------------
 using System;
 using System.Runtime.Serialization;
+using Raven.Abstractions.Data;
 
 namespace Raven.Client.Exceptions
 {
@@ -12,7 +13,7 @@ namespace Raven.Client.Exceptions
 	/// This exception occurs when a (replication) conflict is encountered.
 	/// Usually this required a user to manually resolve the conflict.
 	/// </summary>
-#if !SILVERLIGHT
+#if !SILVERLIGHT && !NETFX_CORE
 	[Serializable]
 #endif
 	public class ConflictException : Exception
@@ -27,7 +28,7 @@ namespace Raven.Client.Exceptions
 		/// <summary>
 		/// Gets or sets the conflicted document etag
 		/// </summary>
-		public Guid Etag { get; set; }
+		public Etag Etag { get; set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ConflictException"/> class.
@@ -40,6 +41,7 @@ namespace Raven.Client.Exceptions
 		/// Initializes a new instance of the <see cref="ConflictException"/> class.
 		/// </summary>
 		/// <param name="message">The message.</param>
+		/// <param name="properlyHandlesClientSideResolution"></param>
 		public ConflictException(string message, bool properlyHandlesClientSideResolution)
 			: base(message)
 		{
@@ -55,7 +57,7 @@ namespace Raven.Client.Exceptions
 		{
 		}
 
-#if !SILVERLIGHT
+#if !SILVERLIGHT && !NETFX_CORE
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ConflictException"/> class.
 		/// </summary>

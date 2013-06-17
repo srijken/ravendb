@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Silverlight.Testing;
@@ -6,11 +8,40 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Raven.Abstractions.Indexing;
 using Raven.Client.Document;
 using Raven.Client.Extensions;
+using Raven.Imports.Newtonsoft.Json;
+using Raven.Json.Linq;
 
 namespace Raven.Tests.Silverlight
 {
 	public class Indexes : RavenTestBase
 	{
+		[Asynchronous]
+		public IEnumerable<Task> ParseJson()
+		{
+			string text = string.Format(@"{{
+  ""AlbumArtUrl"": ""/Content/Images/placeholder.gif"",
+  ""Genre"": {{
+    ""Id"": ""genres/1"",
+    ""Name"": ""Rock""
+  }},
+  ""Price"": 8.99,
+  ""Title"": ""No More Tears (Remastered)"",
+  ""CountSold"": 0,
+  ""Artist"": {{
+    ""Id"": ""artists/114"",
+    ""Name"": ""Ozzy Osbourne""
+  }}
+}}");
+   
+			var reader = new JsonTextReaderAsync(new StringReader(text));
+			var task = RavenJObject.LoadAsync(reader);
+
+			yield return task;
+
+			Assert.IsNotNull(task.Result);
+		}
+
+
 		[Asynchronous]
 		public IEnumerable<Task> TaskIsFaultedWhenDeletingIndexFails()
 		{
@@ -36,7 +67,7 @@ namespace Raven.Tests.Silverlight
 			var dbname = GenerateNewDatabaseName();
 			using (var documentStore = new DocumentStore {Url = Url + Port}.Initialize())
 			{
-				yield return documentStore.AsyncDatabaseCommands.EnsureDatabaseExistsAsync(dbname);
+				yield return documentStore.AsyncDatabaseCommands.Admin.EnsureDatabaseExistsAsync(dbname);
 				yield return
 					documentStore.AsyncDatabaseCommands.ForDatabase(dbname).PutIndexAsync("test", new IndexDefinition
 					                                                                              	{
@@ -46,7 +77,6 @@ namespace Raven.Tests.Silverlight
 				yield return task;
 
 				Assert.IsTrue(task.Result.Any(x => x == "test"));
-
 			}
 		}
 
@@ -56,7 +86,7 @@ namespace Raven.Tests.Silverlight
 			var dbname = GenerateNewDatabaseName();
 			using (var documentStore = new DocumentStore {Url = Url + Port}.Initialize())
 			{
-				yield return documentStore.AsyncDatabaseCommands.EnsureDatabaseExistsAsync(dbname);
+				yield return documentStore.AsyncDatabaseCommands.Admin.EnsureDatabaseExistsAsync(dbname);
 
 				yield return
 					documentStore.AsyncDatabaseCommands.ForDatabase(dbname).PutIndexAsync("test", new IndexDefinition
@@ -77,7 +107,7 @@ namespace Raven.Tests.Silverlight
 			var dbname = GenerateNewDatabaseName();
 			using (var documentStore = new DocumentStore {Url = Url + Port}.Initialize())
 			{
-				yield return documentStore.AsyncDatabaseCommands.EnsureDatabaseExistsAsync(dbname);
+				yield return documentStore.AsyncDatabaseCommands.Admin.EnsureDatabaseExistsAsync(dbname);
 
 				yield return documentStore.AsyncDatabaseCommands
 					.ForDatabase(dbname)
@@ -101,7 +131,7 @@ namespace Raven.Tests.Silverlight
 			var dbname = GenerateNewDatabaseName();
 			using (var documentStore = new DocumentStore {Url = Url + Port}.Initialize())
 			{
-				yield return documentStore.AsyncDatabaseCommands.EnsureDatabaseExistsAsync(dbname);
+				yield return documentStore.AsyncDatabaseCommands.Admin.EnsureDatabaseExistsAsync(dbname);
 
 				yield return documentStore.AsyncDatabaseCommands
 					.ForDatabase(dbname)
@@ -137,7 +167,7 @@ namespace Raven.Tests.Silverlight
 			var dbname = GenerateNewDatabaseName();
 			using (var documentStore = new DocumentStore {Url = Url + Port}.Initialize())
 			{
-				yield return documentStore.AsyncDatabaseCommands.EnsureDatabaseExistsAsync(dbname);
+				yield return documentStore.AsyncDatabaseCommands.Admin.EnsureDatabaseExistsAsync(dbname);
 
 				yield return documentStore.AsyncDatabaseCommands
 					.ForDatabase(dbname)

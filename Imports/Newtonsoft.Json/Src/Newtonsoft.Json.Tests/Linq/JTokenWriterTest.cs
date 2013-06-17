@@ -25,13 +25,16 @@
 
 using System;
 using System.Collections.Generic;
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE || PORTABLE40)
+using System.Numerics;
+#endif
 using System.Text;
 #if !NETFX_CORE
 using NUnit.Framework;
 #else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestFixture = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using TestFixture = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestClassAttribute;
+using Test = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestMethodAttribute;
 #endif
 using Raven.Imports.Newtonsoft.Json;
 using System.IO;
@@ -116,6 +119,11 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Linq
         jsonWriter.WriteValue("DVD read/writer");
         Assert.AreEqual(WriteState.Array, jsonWriter.WriteState);
 
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE || PORTABLE40)
+        jsonWriter.WriteValue(new BigInteger(123));
+        Assert.AreEqual(WriteState.Array, jsonWriter.WriteState);
+#endif
+
         jsonWriter.WriteValue(new byte[0]);
         Assert.AreEqual(WriteState.Array, jsonWriter.WriteState);
 
@@ -139,6 +147,27 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Linq
       Assert.AreEqual(@"[
   /*fail*/]", writer.Token.ToString());
     }
+
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE || PORTABLE40)
+    [Test]
+    public void WriteBigInteger()
+    {
+      JTokenWriter writer = new JTokenWriter();
+
+      writer.WriteStartArray();
+      writer.WriteValue(new BigInteger(123));
+      writer.WriteEndArray();
+
+      JValue i = (JValue) writer.Token[0];
+
+      Assert.AreEqual(new BigInteger(123), i.Value);
+      Assert.AreEqual(JTokenType.Integer, i.Type);
+
+      Assert.AreEqual(@"[
+  123
+]", writer.Token.ToString());
+    }
+#endif
 
     [Test]
     public void WriteRaw()

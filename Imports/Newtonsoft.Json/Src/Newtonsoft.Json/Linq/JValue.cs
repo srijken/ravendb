@@ -27,9 +27,12 @@ using System;
 using System.Collections.Generic;
 using Raven.Imports.Newtonsoft.Json.Utilities;
 using System.Globalization;
-#if !(NET35 || NET20 || WINDOWS_PHONE || PORTABLE)
+#if !(NET35 || NET20 || PORTABLE40)
 using System.Dynamic;
 using System.Linq.Expressions;
+#endif
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE40 || PORTABLE)
+using System.Numerics;
 #endif
 
 namespace Raven.Imports.Newtonsoft.Json.Linq
@@ -38,6 +41,9 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
   /// Represents a value in JSON (string, integer, date, etc).
   /// </summary>
   public class JValue : JToken, IEquatable<JValue>, IFormattable, IComparable, IComparable<JValue>
+#if !(NETFX_CORE || PORTABLE)
+    , IConvertible
+#endif
   {
     private JTokenType _valueType;
     private object _value;
@@ -70,6 +76,15 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
     /// Initializes a new instance of the <see cref="JValue"/> class with the given value.
     /// </summary>
     /// <param name="value">The value.</param>
+    public JValue(char value)
+      : this(value, JTokenType.String)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="JValue"/> class with the given value.
+    /// </summary>
+    /// <param name="value">The value.</param>
     [CLSCompliant(false)]
     public JValue(ulong value)
       : this(value, JTokenType.Integer)
@@ -81,6 +96,15 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
     /// </summary>
     /// <param name="value">The value.</param>
     public JValue(double value)
+      : this(value, JTokenType.Float)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="JValue"/> class with the given value.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    public JValue(float value)
       : this(value, JTokenType.Float)
     {
     }
@@ -117,7 +141,7 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
     /// </summary>
     /// <param name="value">The value.</param>
     public JValue(Guid value)
-      : this(value, JTokenType.String)
+      : this(value, JTokenType.Guid)
     {
     }
 
@@ -126,7 +150,7 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
     /// </summary>
     /// <param name="value">The value.</param>
     public JValue(Uri value)
-      : this(value, JTokenType.String)
+      : this(value, (value != null) ? JTokenType.Uri : JTokenType.Null)
     {
     }
 
@@ -135,7 +159,7 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
     /// </summary>
     /// <param name="value">The value.</param>
     public JValue(TimeSpan value)
-      : this(value, JTokenType.String)
+      : this(value, JTokenType.TimeSpan)
     {
     }
 
@@ -170,7 +194,32 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
       get { return false; }
     }
 
-    private static int Compare(JTokenType valueType, object objA, object objB)
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE40 || PORTABLE)
+    private static int CompareBigInteger(BigInteger i1, object i2)
+    {
+      int result = i1.CompareTo(ConvertUtils.ToBigInteger(i2));
+
+      if (result != 0)
+        return result;
+
+      // converting a fractional number to a BigInteger will lose the fraction
+      // check for fraction if result is two numbers are equal
+      if (i2 is decimal)
+      {
+        decimal d = (decimal) i2;
+        return (0m).CompareTo(Math.Abs(d - Math.Truncate(d)));
+      }
+      else if (i2 is double || i2 is float)
+      {
+        double d = Convert.ToDouble(i2, CultureInfo.InvariantCulture);
+        return (0d).CompareTo(Math.Abs(d - Math.Truncate(d)));
+      }
+
+      return result;
+    }
+#endif
+
+    internal static int Compare(JTokenType valueType, object objA, object objB)
     {
       if (objA == null && objB == null)
         return 0;
@@ -182,6 +231,12 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
       switch (valueType)
       {
         case JTokenType.Integer:
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE40 || PORTABLE)
+          if (objA is BigInteger)
+            return CompareBigInteger((BigInteger)objA, objB);
+          if (objB is BigInteger)
+            return -CompareBigInteger((BigInteger)objB, objA);
+#endif
           if (objA is ulong || objB is ulong || objA is decimal || objB is decimal)
             return Convert.ToDecimal(objA, CultureInfo.InvariantCulture).CompareTo(Convert.ToDecimal(objB, CultureInfo.InvariantCulture));
           else if (objA is float || objB is float || objA is double || objB is double)
@@ -189,6 +244,12 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
           else
             return Convert.ToInt64(objA, CultureInfo.InvariantCulture).CompareTo(Convert.ToInt64(objB, CultureInfo.InvariantCulture));
         case JTokenType.Float:
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE40 || PORTABLE)
+          if (objA is BigInteger)
+            return CompareBigInteger((BigInteger)objA, objB);
+          if (objB is BigInteger)
+            return -CompareBigInteger((BigInteger)objB, objA);
+#endif
           return CompareFloat(objA, objB);
         case JTokenType.Comment:
         case JTokenType.String:
@@ -207,19 +268,28 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
           if (objA is DateTime)
           {
 #endif
-            DateTime date1 = Convert.ToDateTime(objA, CultureInfo.InvariantCulture);
-            DateTime date2 = Convert.ToDateTime(objB, CultureInfo.InvariantCulture);
+            DateTime date1 = (DateTime)objA;
+            DateTime date2;
+
+#if !NET20
+            if (objB is DateTimeOffset)
+              date2 = ((DateTimeOffset)objB).DateTime;
+            else
+#endif
+              date2 = Convert.ToDateTime(objB, CultureInfo.InvariantCulture);
 
             return date1.CompareTo(date2);
 #if !NET20
           }
           else
           {
-            if (!(objB is DateTimeOffset))
-              throw new ArgumentException("Object must be of type DateTimeOffset.");
-
             DateTimeOffset date1 = (DateTimeOffset) objA;
-            DateTimeOffset date2 = (DateTimeOffset) objB;
+            DateTimeOffset date2;
+
+            if (objB is DateTimeOffset)
+              date2 = (DateTimeOffset)objB;
+            else
+              date2 = new DateTimeOffset(Convert.ToDateTime(objB, CultureInfo.InvariantCulture));
 
             return date1.CompareTo(date2);
           }
@@ -277,7 +347,7 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
       return d1.CompareTo(d2);
     }
 
-#if !(NET35 || NET20 || WINDOWS_PHONE || PORTABLE)
+#if !(NET35 || NET20 || PORTABLE40)
     private static bool Operation(ExpressionType operation, object objA, object objB, out object result)
     {
       if (objA is string || objB is string)
@@ -289,6 +359,42 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
         }
       }
 
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE40 || PORTABLE)
+      if (objA is BigInteger || objB is BigInteger)
+      {
+        if (objA == null || objB == null)
+        {
+          result = null;
+          return true;
+        }
+
+        // not that this will lose the fraction
+        // BigInteger doesn't have operators with non-integer types
+        BigInteger i1 = ConvertUtils.ToBigInteger(objA);
+        BigInteger i2 = ConvertUtils.ToBigInteger(objB);
+
+        switch (operation)
+        {
+          case ExpressionType.Add:
+          case ExpressionType.AddAssign:
+            result = i1 + i2;
+            return true;
+          case ExpressionType.Subtract:
+          case ExpressionType.SubtractAssign:
+            result = i1 - i2;
+            return true;
+          case ExpressionType.Multiply:
+          case ExpressionType.MultiplyAssign:
+            result = i1 * i2;
+            return true;
+          case ExpressionType.Divide:
+          case ExpressionType.DivideAssign:
+            result = i1 / i2;
+            return true;
+        }
+      }
+      else
+#endif
       if (objA is ulong || objB is ulong || objA is decimal || objB is decimal)
       {
         if (objA == null || objB == null)
@@ -418,7 +524,7 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
     {
       if (value == null)
         return JTokenType.Null;
-#if !(NETFX_CORE || PORTABLE)
+#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
       else if (value == DBNull.Value)
         return JTokenType.Null;
 #endif
@@ -429,11 +535,15 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
         return JTokenType.Integer;
       else if (value is Enum)
         return JTokenType.Integer;
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE40 || PORTABLE)
+      else if (value is BigInteger)
+        return JTokenType.Integer;
+#endif
       else if (value is double || value is float || value is decimal)
         return JTokenType.Float;
       else if (value is DateTime)
         return JTokenType.Date;
-#if !PocketPC && !NET20
+#if !NET20
       else if (value is DateTimeOffset)
         return JTokenType.Date;
 #endif
@@ -502,10 +612,20 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
     /// <param name="converters">A collection of <see cref="JsonConverter"/> which will be used when writing the token.</param>
     public override void WriteTo(JsonWriter writer, params JsonConverter[] converters)
     {
+      if (converters != null && converters.Length > 0 && _value != null)
+      {
+        JsonConverter matchingConverter = JsonSerializer.GetMatchingConverter(converters, _value.GetType());
+        if (matchingConverter != null)
+        {
+          matchingConverter.WriteJson(writer, _value, JsonSerializer.CreateDefault());
+          return;
+        }
+      }
+
       switch (_valueType)
       {
         case JTokenType.Comment:
-          writer.WriteComment(_value.ToString());
+          writer.WriteComment((_value != null) ? _value.ToString() : null);
           return;
         case JTokenType.Raw:
           writer.WriteRawValue((_value != null) ? _value.ToString() : null);
@@ -516,27 +636,23 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
         case JTokenType.Undefined:
           writer.WriteUndefined();
           return;
-      }
-
-      JsonConverter matchingConverter;
-      if (_value != null && ((matchingConverter = JsonSerializer.GetMatchingConverter(converters, _value.GetType())) != null))
-      {
-        matchingConverter.WriteJson(writer, _value, new JsonSerializer());
-        return;
-      }
-
-      switch (_valueType)
-      {
         case JTokenType.Integer:
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE40 || PORTABLE)
+          if (_value is BigInteger)
+            writer.WriteValue((BigInteger)_value);
+          else
+#endif
           writer.WriteValue(Convert.ToInt64(_value, CultureInfo.InvariantCulture));
           return;
         case JTokenType.Float:
-		  if (_value is decimal)
-		  {
-			  writer.WriteValue((decimal)_value);
-			  return;
-		  }
-          writer.WriteValue(Convert.ToDouble(_value, CultureInfo.InvariantCulture));
+          if (_value is decimal)
+            writer.WriteValue((decimal)_value);
+          else if (_value is double)
+            writer.WriteValue((double)_value);
+          else if (_value is float)
+            writer.WriteValue((float)_value);
+          else
+            writer.WriteValue(Convert.ToDouble(_value, CultureInfo.InvariantCulture));
           return;
         case JTokenType.String:
           writer.WriteValue((_value != null) ? _value.ToString() : null);
@@ -545,7 +661,7 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
           writer.WriteValue(Convert.ToBoolean(_value, CultureInfo.InvariantCulture));
           return;
         case JTokenType.Date:
-#if !PocketPC && !NET20
+#if !NET20
           if (_value is DateTimeOffset)
             writer.WriteValue((DateTimeOffset)_value);
           else
@@ -686,7 +802,7 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
         return _value.ToString();
     }
 
-#if !(NET35 || NET20 || WINDOWS_PHONE || PORTABLE)
+#if !(NET35 || NET20 || PORTABLE40)
     /// <summary>
     /// Returns the <see cref="T:System.Dynamic.DynamicMetaObject"/> responsible for binding operations performed on this object.
     /// </summary>
@@ -802,5 +918,99 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
 
       return Compare(_valueType, _value, obj._value);
     }
+
+#if !(NETFX_CORE || PORTABLE)
+    TypeCode IConvertible.GetTypeCode()
+    {
+      if (_value == null)
+        return TypeCode.Empty;
+
+#if !NET20
+      if (_value is DateTimeOffset)
+        return TypeCode.DateTime;
+#endif
+#if !(NET20 || NET35 || PORTABLE40 || SILVERLIGHT)
+      if (_value is BigInteger)
+        return TypeCode.Object;
+#endif
+
+      return System.Type.GetTypeCode(_value.GetType());
+    }
+
+    bool IConvertible.ToBoolean(IFormatProvider provider)
+    {
+      return (bool) this;
+    }
+
+    char IConvertible.ToChar(IFormatProvider provider)
+    {
+      return (char) this;
+    }
+
+    sbyte IConvertible.ToSByte(IFormatProvider provider)
+    {
+      return (sbyte) this;
+    }
+
+    byte IConvertible.ToByte(IFormatProvider provider)
+    {
+      return (byte) this;
+    }
+
+    short IConvertible.ToInt16(IFormatProvider provider)
+    {
+      return (short) this;
+    }
+
+    ushort IConvertible.ToUInt16(IFormatProvider provider)
+    {
+      return (ushort) this;
+    }
+
+    int IConvertible.ToInt32(IFormatProvider provider)
+    {
+      return (int) this;
+    }
+
+    uint IConvertible.ToUInt32(IFormatProvider provider)
+    {
+      return (uint) this;
+    }
+
+    long IConvertible.ToInt64(IFormatProvider provider)
+    {
+      return (long) this;
+    }
+
+    ulong IConvertible.ToUInt64(IFormatProvider provider)
+    {
+      return (ulong) this;
+    }
+
+    float IConvertible.ToSingle(IFormatProvider provider)
+    {
+      return (float) this;
+    }
+
+    double IConvertible.ToDouble(IFormatProvider provider)
+    {
+      return (double) this;
+    }
+
+    decimal IConvertible.ToDecimal(IFormatProvider provider)
+    {
+      return (decimal) this;
+    }
+
+    DateTime IConvertible.ToDateTime(IFormatProvider provider)
+    {
+      return (DateTime) this;
+    }
+
+    object IConvertible.ToType(Type conversionType, IFormatProvider provider)
+    {
+      return ToObject(conversionType);
+    }
+#endif
   }
 }

@@ -27,12 +27,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 #if !NETFX_CORE
-using System.IO;
 using NUnit.Framework;
 #else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestFixture = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using TestFixture = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestClassAttribute;
+using Test = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestMethodAttribute;
 #endif
 using Raven.Imports.Newtonsoft.Json.Converters;
 using Raven.Imports.Newtonsoft.Json.Linq;
@@ -50,6 +49,17 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Linq
   [TestFixture]
   public class LinqToJsonTest : TestFixtureBase
   {
+    [Test]
+    public void ForEach()
+    {
+      JArray items = new JArray(new JObject(new JProperty("name", "value!")));
+
+      foreach (JObject friend in items)
+      {
+        Console.WriteLine(friend);
+      }
+    }
+
     [Test]
     public void DoubleValue()
     {
@@ -397,7 +407,7 @@ keyword such as type of business.""
         new Post()
         {
           Title = "Json.NET 1.3 + New license + Now on CodePlex",
-          Description = "Annoucing the release of Json.NET 1.3, the MIT license and the source being available on CodePlex",
+          Description = "Annoucing the release of Json.NET 1.3, the MIT license and being available on CodePlex",
           Link = "http://james.newtonking.com/projects/json-net.aspx",
           Categories = new List<string>() { "Json.NET", "CodePlex" }
         }
@@ -439,7 +449,7 @@ keyword such as type of business.""
       //    "item": [
       //      {
       //        "title": "Json.NET 1.3 + New license + Now on CodePlex",
-      //        "description": "Annoucing the release of Json.NET 1.3, the MIT license and the source being available on CodePlex",
+      //        "description": "Annoucing the release of Json.NET 1.3, the MIT license and being available on CodePlex",
       //        "link": "http://james.newtonking.com/projects/json-net.aspx",
       //        "category": [
       //          "Json.NET",
@@ -498,7 +508,7 @@ keyword such as type of business.""
                           ""item"": [
                             {
                               ""title"": ""Json.NET 1.3 + New license + Now on CodePlex"",
-                              ""description"": ""Annoucing the release of Json.NET 1.3, the MIT license and the source being available on CodePlex"",
+                              ""description"": ""Annoucing the release of Json.NET 1.3, the MIT license and being available on CodePlex"",
                               ""link"": ""http://james.newtonking.com/projects/json-net.aspx"",
                               ""category"": [
                                 ""Json.NET"",
@@ -566,7 +576,7 @@ keyword such as type of business.""
       });
     }
 
-#if !PocketPC && !NET20
+#if !NET20
     [Test]
     public void ToStringJsonConverter()
     {
@@ -719,7 +729,7 @@ keyword such as type of business.""
       Assert.AreEqual(new DateTime(2000, 10, 15, 5, 5, 5, DateTimeKind.Utc), d);
     }
 
-#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE)
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE40)
     [Test]
     public void CovariantIJEnumerable()
     {
@@ -734,6 +744,19 @@ keyword such as type of business.""
     }
 #endif
 
+#if !NET20
+    [Test]
+    public void LinqCast()
+    {
+      JToken olist = JArray.Parse("[12,55]");
+
+      List<int> list1 = olist.AsEnumerable().Values<int>().ToList();
+
+      Assert.AreEqual(12, list1[0]);
+      Assert.AreEqual(55, list1[1]);
+    }
+#endif
+
     [Test]
     public void ChildrenExtension()
     {
@@ -745,7 +768,7 @@ keyword such as type of business.""
                           ""item"": [
                             {
                               ""title"": ""Json.NET 1.3 + New license + Now on CodePlex"",
-                              ""description"": ""Annoucing the release of Json.NET 1.3, the MIT license and the source being available on CodePlex"",
+                              ""description"": ""Annoucing the release of Json.NET 1.3, the MIT license and being available on CodePlex"",
                               ""link"": ""http://james.newtonking.com/projects/json-net.aspx"",
                               ""category"": [
                                 ""Json.NET"",
@@ -770,7 +793,7 @@ keyword such as type of business.""
                           ""item"": [
                             {
                               ""title"": ""Json.NET 1.3 + New license + Now on CodePlex"",
-                              ""description"": ""Annoucing the release of Json.NET 1.3, the MIT license and the source being available on CodePlex"",
+                              ""description"": ""Annoucing the release of Json.NET 1.3, the MIT license and being available on CodePlex"",
                               ""link"": ""http://james.newtonking.com/projects/json-net.aspx"",
                               ""category"": [
                                 ""Json.NET"",
@@ -803,6 +826,7 @@ keyword such as type of business.""
         o.Children()["item"].Children()["title"].Values<string>().ToArray());
     }
 
+    [Test]
     public void UriGuidTimeSpanTestClassEmptyTest()
     {
       UriGuidTimeSpanTestClass c1 = new UriGuidTimeSpanTestClass();
@@ -824,6 +848,7 @@ keyword such as type of business.""
       Assert.AreEqual(c1.Uri, c2.Uri);
     }
 
+    [Test]
     public void UriGuidTimeSpanTestClassValuesTest()
     {
       UriGuidTimeSpanTestClass c1 = new UriGuidTimeSpanTestClass
@@ -851,5 +876,36 @@ keyword such as type of business.""
       Assert.AreEqual(c1.NullableTimeSpan, c2.NullableTimeSpan);
       Assert.AreEqual(c1.Uri, c2.Uri);
     }
+
+    [Test]
+    public void ParseWithPrecendingComments()
+    {
+      string json = @"/* blah */ {'hi':'hi!'}";
+      JObject o = JObject.Parse(json);
+      Assert.AreEqual("hi!", (string)o["hi"]);
+
+      json = @"/* blah */ ['hi!']";
+      JArray a = JArray.Parse(json);
+      Assert.AreEqual("hi!", (string)a[0]);
+    }
+
+#if !(NET35 || NET20 || WINDOWS_PHONE)
+    [Test]
+    public void ExceptionFromOverloadWithJValue()
+    {
+      dynamic name = new JValue("Matthew Doig");
+
+      IDictionary<string, string> users = new Dictionary<string, string>();
+
+      // unfortunatly there doesn't appear to be a way around this
+      ExceptionAssert.Throws<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>("The best overloaded method match for 'System.Collections.Generic.IDictionary<string,string>.Add(string, string)' has some invalid arguments",
+        () =>
+          {
+            users.Add("name2", name);
+
+            Assert.AreEqual(users["name2"], "Matthew Doig");
+          });
+    }
+#endif
   }
 }

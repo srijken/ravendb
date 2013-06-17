@@ -38,10 +38,8 @@ namespace Raven.Bundles.Expiration
 				// if we can't process the value, ignore it.
 				return ReadVetoResult.Allowed;
 			}
-			if(dateTime > SystemTime.UtcNow)
-				return ReadVetoResult.Allowed;
-			return ReadVetoResult.Ignore;
-		}
 
+			return dateTime > SystemTime.UtcNow ? ReadVetoResult.Allowed : ReadVetoResult.Ignore;
+		}
 	}
 }

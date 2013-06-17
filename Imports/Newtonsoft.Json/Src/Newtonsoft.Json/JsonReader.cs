@@ -103,7 +103,7 @@ namespace Raven.Imports.Newtonsoft.Json
     // current Token data
     private JsonToken _tokenType;
     private object _value;
-    private char _quoteChar;
+    internal char _quoteChar;
     internal State _currentState;
     internal ReadType _readType;
     private JsonPosition _currentPosition;
@@ -112,6 +112,7 @@ namespace Raven.Imports.Newtonsoft.Json
     private int? _maxDepth;
     private bool _hasExceededMaxDepth;
     internal DateParseHandling _dateParseHandling;
+    internal FloatParseHandling _floatParseHandling;
     private readonly List<JsonPosition> _stack;
 
     /// <summary>
@@ -158,6 +159,15 @@ namespace Raven.Imports.Newtonsoft.Json
     {
       get { return _dateParseHandling; }
       set { _dateParseHandling = value; }
+    }
+
+    /// <summary>
+    /// Get or set how floating point numbers, e.g. 1.0 and 9.9, are parsed when reading JSON text.
+    /// </summary>
+    public FloatParseHandling FloatParseHandling
+    {
+      get { return _floatParseHandling; }
+      set { _floatParseHandling = value; }
     }
 
     /// <summary>
@@ -225,7 +235,15 @@ namespace Raven.Imports.Newtonsoft.Json
         if (_currentPosition.Type == JsonContainerType.None)
           return string.Empty;
 
-        return JsonPosition.BuildPath(_stack.Concat(new[] { _currentPosition }));
+        bool insideContainer = (_currentState != State.ArrayStart
+          && _currentState != State.ConstructorStart
+          && _currentState != State.ObjectStart);
+
+        IEnumerable<JsonPosition> positions = (!insideContainer)
+          ? _stack
+          : _stack.Concat(new[] {_currentPosition});
+
+        return JsonPosition.BuildPath(positions);
       }
     }
 
@@ -254,7 +272,8 @@ namespace Raven.Imports.Newtonsoft.Json
       _currentState = State.Start;
       _stack = new List<JsonPosition>(4);
       _dateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind;
-      _dateParseHandling = DateParseHandling.None;
+      _dateParseHandling = DateParseHandling.DateTime;
+      _floatParseHandling = FloatParseHandling.Double;
 
       CloseInput = true;
     }
@@ -265,16 +284,12 @@ namespace Raven.Imports.Newtonsoft.Json
 
       if (_currentPosition.Type == JsonContainerType.None)
       {
-        _currentPosition.Type = value;
+        _currentPosition = new JsonPosition(value);
       }
       else
       {
         _stack.Add(_currentPosition);
-        JsonPosition state = new JsonPosition
-        {
-          Type = value
-        };
-        _currentPosition = state;
+        _currentPosition = new JsonPosition(value);
 
         // this is a little hacky because Depth increases when first property/value is written but only testing here is faster/simpler
         if (_maxDepth != null && Depth + 1 > _maxDepth && !_hasExceededMaxDepth)
@@ -365,6 +380,8 @@ namespace Raven.Imports.Newtonsoft.Json
     {
       _readType = ReadType.ReadAsDateTimeOffset;
 
+      JsonToken t;
+
       do
       {
         if (!ReadInternal())
@@ -372,9 +389,13 @@ namespace Raven.Imports.Newtonsoft.Json
           SetToken(JsonToken.None);
           return null;
         }
-      } while (TokenType == JsonToken.Comment);
+        else
+        {
+          t = TokenType;
+        }
+      } while (t == JsonToken.Comment);
 
-      if (TokenType == JsonToken.Date)
+      if (t == JsonToken.Date)
       {
         if (Value is DateTime)
           SetToken(JsonToken.Date, new DateTimeOffset((DateTime)Value));
@@ -382,13 +403,20 @@ namespace Raven.Imports.Newtonsoft.Json
         return (DateTimeOffset)Value;
       }
 
-      if (TokenType == JsonToken.Null)
+      if (t == JsonToken.Null)
         return null;
 
       DateTimeOffset dt;
-      if (TokenType == JsonToken.String)
+      if (t == JsonToken.String)
       {
-        if (DateTimeOffset.TryParse((string)Value, Culture, DateTimeStyles.RoundtripKind, out dt))
+        string s = (string)Value;
+        if (string.IsNullOrEmpty(s))
+        {
+          SetToken(JsonToken.Null);
+          return null;
+        }
+
+        if (DateTimeOffset.TryParse(s, Culture, DateTimeStyles.RoundtripKind, out dt))
         {
           SetToken(JsonToken.Date, dt);
           return dt;
@@ -399,16 +427,18 @@ namespace Raven.Imports.Newtonsoft.Json
         }
       }
 
-      if (TokenType == JsonToken.EndArray)
+      if (t == JsonToken.EndArray)
         return null;
 
-      throw JsonReaderException.Create(this, "Error reading date. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, TokenType));
+      throw JsonReaderException.Create(this, "Error reading date. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
     }
 #endif
 
     internal byte[] ReadAsBytesInternal()
     {
       _readType = ReadType.ReadAsBytes;
+
+      JsonToken t;
 
       do
       {
@@ -417,7 +447,11 @@ namespace Raven.Imports.Newtonsoft.Json
           SetToken(JsonToken.None);
           return null;
         }
-      } while (TokenType == JsonToken.Comment);
+        else
+        {
+          t = TokenType;
+        }
+      } while (t == JsonToken.Comment);
 
       if (IsWrappedInTypeObject())
       {
@@ -428,26 +462,28 @@ namespace Raven.Imports.Newtonsoft.Json
       }
 
       // attempt to convert possible base 64 string to bytes
-      if (TokenType == JsonToken.String)
+      if (t == JsonToken.String)
       {
         string s = (string)Value;
         byte[] data = (s.Length == 0) ? new byte[0] : Convert.FromBase64String(s);
         SetToken(JsonToken.Bytes, data);
+        return data;
       }
 
-      if (TokenType == JsonToken.Null)
+      if (t == JsonToken.Null)
         return null;
 
-      if (TokenType == JsonToken.Bytes)
+      if (t == JsonToken.Bytes)
         return (byte[])Value;
 
-      if (TokenType == JsonToken.StartArray)
+      if (t == JsonToken.StartArray)
       {
         List<byte> data = new List<byte>();
 
         while (ReadInternal())
         {
-          switch (TokenType)
+          t = TokenType;
+          switch (t)
           {
             case JsonToken.Integer:
               data.Add(Convert.ToByte(Value, CultureInfo.InvariantCulture));
@@ -460,22 +496,24 @@ namespace Raven.Imports.Newtonsoft.Json
               // skip
               break;
             default:
-              throw JsonReaderException.Create(this, "Unexpected token when reading bytes: {0}.".FormatWith(CultureInfo.InvariantCulture, TokenType));
+              throw JsonReaderException.Create(this, "Unexpected token when reading bytes: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
           }
         }
 
         throw JsonReaderException.Create(this, "Unexpected end when reading bytes.");
       }
 
-      if (TokenType == JsonToken.EndArray)
+      if (t == JsonToken.EndArray)
         return null;
 
-      throw JsonReaderException.Create(this, "Error reading bytes. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, TokenType));
+      throw JsonReaderException.Create(this, "Error reading bytes. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
     }
 
     internal decimal? ReadAsDecimalInternal()
     {
       _readType = ReadType.ReadAsDecimal;
+
+      JsonToken t;
 
       do
       {
@@ -484,9 +522,13 @@ namespace Raven.Imports.Newtonsoft.Json
           SetToken(JsonToken.None);
           return null;
         }
-      } while (TokenType == JsonToken.Comment);
+        else
+        {
+          t = TokenType;
+        }
+      } while (t == JsonToken.Comment);
 
-      if (TokenType == JsonToken.Integer || TokenType == JsonToken.Float)
+      if (t == JsonToken.Integer || t == JsonToken.Float)
       {
         if (!(Value is decimal))
           SetToken(JsonToken.Float, Convert.ToDecimal(Value, CultureInfo.InvariantCulture));
@@ -494,13 +536,20 @@ namespace Raven.Imports.Newtonsoft.Json
         return (decimal)Value;
       }
 
-      if (TokenType == JsonToken.Null)
+      if (t == JsonToken.Null)
         return null;
 
       decimal d;
-      if (TokenType == JsonToken.String)
+      if (t == JsonToken.String)
       {
-        if (decimal.TryParse((string)Value, NumberStyles.Number, Culture, out d))
+        string s = (string)Value;
+        if (string.IsNullOrEmpty(s))
+        {
+          SetToken(JsonToken.Null);
+          return null;
+        }
+
+        if (decimal.TryParse(s, NumberStyles.Number, Culture, out d))
         {
           SetToken(JsonToken.Float, d);
           return d;
@@ -511,15 +560,17 @@ namespace Raven.Imports.Newtonsoft.Json
         }
       }
 
-      if (TokenType == JsonToken.EndArray)
+      if (t == JsonToken.EndArray)
         return null;
 
-      throw JsonReaderException.Create(this, "Error reading decimal. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, TokenType));
+      throw JsonReaderException.Create(this, "Error reading decimal. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
     }
 
     internal int? ReadAsInt32Internal()
     {
       _readType = ReadType.ReadAsInt32;
+
+      JsonToken t;
 
       do
       {
@@ -528,9 +579,13 @@ namespace Raven.Imports.Newtonsoft.Json
           SetToken(JsonToken.None);
           return null;
         }
-      } while (TokenType == JsonToken.Comment);
+        else
+        {
+          t = TokenType;
+        }
+      } while (t == JsonToken.Comment);
 
-      if (TokenType == JsonToken.Integer || TokenType == JsonToken.Float)
+      if (t == JsonToken.Integer || t == JsonToken.Float)
       {
         if (!(Value is int))
           SetToken(JsonToken.Integer, Convert.ToInt32(Value, CultureInfo.InvariantCulture));
@@ -538,13 +593,20 @@ namespace Raven.Imports.Newtonsoft.Json
         return (int)Value;
       }
 
-      if (TokenType == JsonToken.Null)
+      if (t == JsonToken.Null)
         return null;
 
       int i;
-      if (TokenType == JsonToken.String)
+      if (t == JsonToken.String)
       {
-        if (int.TryParse((string)Value, NumberStyles.Integer, Culture, out i))
+        string s = (string)Value;
+        if (string.IsNullOrEmpty(s))
+        {
+          SetToken(JsonToken.Null);
+          return null;
+        }
+
+        if (int.TryParse(s, NumberStyles.Integer, Culture, out i))
         {
           SetToken(JsonToken.Integer, i);
           return i;
@@ -555,7 +617,7 @@ namespace Raven.Imports.Newtonsoft.Json
         }
       }
 
-      if (TokenType == JsonToken.EndArray)
+      if (t == JsonToken.EndArray)
         return null;
 
       throw JsonReaderException.Create(this, "Error reading integer. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, TokenType));
@@ -565,6 +627,8 @@ namespace Raven.Imports.Newtonsoft.Json
     {
       _readType = ReadType.ReadAsString;
 
+      JsonToken t;
+
       do
       {
         if (!ReadInternal())
@@ -572,22 +636,24 @@ namespace Raven.Imports.Newtonsoft.Json
           SetToken(JsonToken.None);
           return null;
         }
-      } while (TokenType == JsonToken.Comment);
+        else
+        {
+          t = TokenType;
+        }
+      } while (t == JsonToken.Comment);
 
-      if (TokenType == JsonToken.String)
+      if (t == JsonToken.String)
         return (string)Value;
 
-      if (TokenType == JsonToken.Null)
+      if (t == JsonToken.Null)
         return null;
 
-      if (IsPrimitiveToken(TokenType))
+      if (IsPrimitiveToken(t))
       {
         if (Value != null)
         {
           string s;
-          if (ConvertUtils.IsConvertible(Value))
-            s = ConvertUtils.ToConvertible(Value).ToString(Culture);
-          else if (Value is IFormattable)
+          if (Value is IFormattable)
             s = ((IFormattable)Value).ToString(null, Culture);
           else
             s = Value.ToString();
@@ -597,10 +663,10 @@ namespace Raven.Imports.Newtonsoft.Json
         }
       }
 
-      if (TokenType == JsonToken.EndArray)
+      if (t == JsonToken.EndArray)
         return null;
 
-      throw JsonReaderException.Create(this, "Error reading string. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, TokenType));
+      throw JsonReaderException.Create(this, "Error reading string. Unexpected token: {0}.".FormatWith(CultureInfo.InvariantCulture, t));
     }
 
     internal DateTime? ReadAsDateTimeInternal()
@@ -634,7 +700,7 @@ namespace Raven.Imports.Newtonsoft.Json
 
         if (DateTime.TryParse(s, Culture, DateTimeStyles.RoundtripKind, out dt))
         {
-          dt = JsonConvert.EnsureDateTime(dt, DateTimeZoneHandling);
+          dt = DateTimeUtils.EnsureDateTime(dt, DateTimeZoneHandling);
           SetToken(JsonToken.Date, dt);
           return dt;
         }
@@ -761,14 +827,8 @@ namespace Raven.Imports.Newtonsoft.Json
 
     private void UpdateScopeWithFinishedValue()
     {
-      if (_currentPosition.Type == JsonContainerType.Array
-        || _currentPosition.Type == JsonContainerType.Constructor)
-      {
-        if (_currentPosition.Position == null)
-          _currentPosition.Position = 0;
-        else
-          _currentPosition.Position++;
-      }
+      if (_currentPosition.HasIndex)
+        _currentPosition.Position++;
     }
 
     private void ValidateEnd(JsonToken endToken)

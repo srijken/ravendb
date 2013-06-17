@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using Raven.Abstractions.Data;
 using Raven.Client.Document;
 using Raven.Database.Server;
+using Raven.Database.Server.Security;
 using Raven.Json.Linq;
 using Raven.Tests.Bugs;
 using Xunit;
@@ -21,6 +22,7 @@ namespace Raven.Tests.Bundles.Replication.Bugs
 		protected override void ConfigureServer(Database.Config.RavenConfiguration serverConfiguration)
 		{
 			serverConfiguration.AnonymousUserAccessMode = AnonymousUserAccessMode.None;
+            Authentication.EnableOnce();
 		}
 
 		protected override void ConfigureDatbase(Database.DocumentDatabase database)
@@ -45,15 +47,15 @@ namespace Raven.Tests.Bundles.Replication.Bugs
 			{
 				store.ApiKey = apikey;
 				store.Conventions.FailoverBehavior=FailoverBehavior.FailImmediately;
-			});
+			},enableAuthorization: true);
 			var store2 = CreateStore(configureStore: store =>
 			{
 				store.ApiKey = apikey;
 				store.Conventions.FailoverBehavior = FailoverBehavior.FailImmediately;
-			});
+			}, enableAuthorization: true);
 
 
-			store1.DatabaseCommands.CreateDatabase(new DatabaseDocument
+			store1.DatabaseCommands.Admin.CreateDatabase(new DatabaseDocument
 			{
 				Id = "repl",
 				Settings =
@@ -63,7 +65,7 @@ namespace Raven.Tests.Bundles.Replication.Bugs
 					{"Raven/ActiveBundles", "Replication"}
 				}
 			});
-			store2.DatabaseCommands.CreateDatabase(new DatabaseDocument
+			store2.DatabaseCommands.Admin.CreateDatabase(new DatabaseDocument
 			{
 				Id = "repl",
 				Settings =

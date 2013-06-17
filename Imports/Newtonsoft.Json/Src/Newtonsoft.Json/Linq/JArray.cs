@@ -34,9 +34,12 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
   /// <summary>
   /// Represents a JSON array.
   /// </summary>
+  /// <example>
+  ///   <code lang="cs" source="..\Src\Newtonsoft.Json.Tests\Documentation\LinqToJsonTests.cs" region="LinqToJsonCreateParseArray" title="Parsing a JSON Array from Text" />
+  /// </example>
   public class JArray : JContainer, IList<JToken>
   {
-    private readonly IList<JToken> _values = new List<JToken>();
+    private readonly List<JToken> _values = new List<JToken>();
 
     /// <summary>
     /// Gets the container's children tokens.
@@ -113,6 +116,12 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
         if (!reader.Read())
           throw JsonReaderException.Create(reader, "Error reading JArray from JsonReader.");
       }
+
+      while (reader.TokenType == JsonToken.Comment)
+      {
+        reader.Read();
+      }
+
       if (reader.TokenType != JsonToken.StartArray)
         throw JsonReaderException.Create(reader, "Error reading JArray from JsonReader. Current JsonReader item is not an array: {0}".FormatWith(CultureInfo.InvariantCulture, reader.TokenType));
 
@@ -129,6 +138,9 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
     /// </summary>
     /// <param name="json">A <see cref="String"/> that contains JSON.</param>
     /// <returns>A <see cref="JArray"/> populated from the string that contains JSON.</returns>
+    /// <example>
+    ///   <code lang="cs" source="..\Src\Newtonsoft.Json.Tests\Documentation\LinqToJsonTests.cs" region="LinqToJsonCreateParseArray" title="Parsing a JSON Array from Text" />
+    /// </example>
     public static new JArray Parse(string json)
     {
       JsonReader reader = new JsonTextReader(new StringReader(json));
@@ -148,7 +160,7 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
     /// <returns>A <see cref="JArray"/> with the values of the specified object</returns>
     public static new JArray FromObject(object o)
     {
-      return FromObject(o, new JsonSerializer());
+      return FromObject(o, JsonSerializer.CreateDefault());
     }
 
     /// <summary>
@@ -176,9 +188,9 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
     {
       writer.WriteStartArray();
 
-      foreach (JToken token in ChildrenTokens)
+      for (int i = 0; i < _values.Count; i++)
       {
-        token.WriteTo(writer, converters);
+        _values[i].WriteTo(writer, converters);
       }
 
       writer.WriteEndArray();
@@ -259,6 +271,17 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
       RemoveItemAt(index);
     }
 
+    /// <summary>
+    /// Returns an enumerator that iterates through the collection.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="T:System.Collections.Generic.IEnumerator`1" /> that can be used to iterate through the collection.
+    /// </returns>
+    public IEnumerator<JToken> GetEnumerator()
+    {
+      return Children().GetEnumerator();
+    }
+
     #endregion
 
     #region ICollection<JToken> Members
@@ -294,12 +317,21 @@ namespace Raven.Imports.Newtonsoft.Json.Linq
       return ContainsItem(item);
     }
 
-    void ICollection<JToken>.CopyTo(JToken[] array, int arrayIndex)
+    /// <summary>
+    /// Copies to.
+    /// </summary>
+    /// <param name="array">The array.</param>
+    /// <param name="arrayIndex">Index of the array.</param>
+    public void CopyTo(JToken[] array, int arrayIndex)
     {
       CopyItemsTo(array, arrayIndex);
     }
 
-    bool ICollection<JToken>.IsReadOnly
+    /// <summary>
+    /// Gets a value indicating whether the <see cref="T:System.Collections.Generic.ICollection`1" /> is read-only.
+    /// </summary>
+    /// <returns>true if the <see cref="T:System.Collections.Generic.ICollection`1" /> is read-only; otherwise, false.</returns>
+    public bool IsReadOnly
     {
       get { return false; }
     }

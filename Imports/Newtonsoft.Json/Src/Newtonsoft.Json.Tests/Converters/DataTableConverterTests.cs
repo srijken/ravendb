@@ -23,18 +23,20 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(SILVERLIGHT || NETFX_CORE || PORTABLE)
+#if !(SILVERLIGHT || NETFX_CORE || PORTABLE || PORTABLE40)
 using System;
+using System.Collections.Generic;
 #if !NETFX_CORE
 using NUnit.Framework;
 #else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestFixture = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using TestFixture = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestClassAttribute;
+using Test = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestMethodAttribute;
 #endif
 #if !NETFX_CORE
 using System.Data;
 #endif
+using Newtonsoft.Json.Tests.TestObjects;
 
 namespace Raven.Imports.Newtonsoft.Json.Tests.Converters
 {
@@ -215,7 +217,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Converters
       Assert.AreEqual("shoes", table.Rows[2]["item"]);
       Assert.AreEqual(49.99, (double)table.Rows[0]["price"], 0.01);
       Assert.AreEqual(54.99, (double)table.Rows[1]["price"], 0.01);
-      Assert.IsInstanceOfType(typeof(System.DBNull), table.Rows[2]["price"]);
+      CustomAssert.IsInstanceOfType(typeof(System.DBNull), table.Rows[2]["price"]);
     }
 
     [Test]
@@ -231,7 +233,73 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Converters
       Assert.AreEqual("shoes", table.Rows[2]["item"]);
       Assert.AreEqual(49.99, (double)table.Rows[0]["price"], 0.01);
       Assert.AreEqual(54.99, (double)table.Rows[1]["price"], 0.01);
-      Assert.IsInstanceOfType(typeof(System.DBNull), table.Rows[2]["price"]);
+      CustomAssert.IsInstanceOfType(typeof(System.DBNull), table.Rows[2]["price"]);
+    }
+
+    [Test]
+    public void SerializeKeyValuePairWithDataTableKey()
+    {
+      DataTable table = new DataTable();
+      DataColumn idColumn = new DataColumn("id", typeof(int));
+      idColumn.AutoIncrement = true;
+
+      DataColumn itemColumn = new DataColumn("item");
+      table.Columns.Add(idColumn);
+      table.Columns.Add(itemColumn);
+
+      DataRow r = table.NewRow();
+      r["item"] = "item!";
+      r.EndEdit();
+      table.Rows.Add(r);
+
+      KeyValuePair<DataTable, int> pair = new KeyValuePair<DataTable, int>(table, 1);
+      string serializedpair = JsonConvert.SerializeObject(pair, Formatting.Indented);
+
+      Assert.AreEqual(@"{
+  ""Key"": [
+    {
+      ""id"": 0,
+      ""item"": ""item!""
+    }
+  ],
+  ""Value"": 1
+}", serializedpair);
+
+      var pair2 = (KeyValuePair<DataTable, int>)JsonConvert.DeserializeObject(serializedpair, typeof(KeyValuePair<DataTable, int>));
+
+      Assert.AreEqual(1, pair2.Value);
+      Assert.AreEqual(1, pair2.Key.Rows.Count);
+      Assert.AreEqual("item!", pair2.Key.Rows[0]["item"]);
+    }
+
+
+    [Test]
+    public void SerializedTypedDataTable()
+    {
+      CustomerDataSet.CustomersDataTable dt = new CustomerDataSet.CustomersDataTable();
+      dt.AddCustomersRow("432");
+
+      string json = JsonConvert.SerializeObject(dt, Formatting.Indented);
+
+      Assert.AreEqual(@"[
+  {
+    ""CustomerID"": ""432""
+  }
+]", json);
+    }
+
+    [Test]
+    public void DeserializedTypedDataTable()
+    {
+      string json = @"[
+  {
+    ""CustomerID"": ""432""
+  }
+]";
+
+      var dt = JsonConvert.DeserializeObject<CustomerDataSet.CustomersDataTable>(json);
+
+      Assert.AreEqual("432", dt[0].CustomerID);
     }
   }
 }

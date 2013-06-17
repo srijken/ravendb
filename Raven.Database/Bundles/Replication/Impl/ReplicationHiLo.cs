@@ -34,7 +34,7 @@ namespace Raven.Bundles.Replication.Impl
 
 		public long NextId()
 		{
-			long incrementedCurrent = Interlocked.Increment(ref current);
+			var incrementedCurrent = Interlocked.Increment(ref current);
 			while (incrementedCurrent > currentMax.Value)
 			{
 				lock (generatorLock)
@@ -46,8 +46,8 @@ namespace Raven.Bundles.Replication.Impl
 					return Interlocked.Increment(ref current);
 				}
 			}
-			return incrementedCurrent;
 
+			return incrementedCurrent;
 		}
 
 		private long GetNextMax()
@@ -57,6 +57,7 @@ namespace Raven.Bundles.Replication.Impl
 			{
 				capacity *= 2;
 			}
+
 			lastRequestedUtc = SystemTime.UtcNow;
 			while (true)
 			{
@@ -67,13 +68,15 @@ namespace Raven.Bundles.Replication.Impl
 					if (document == null)
 					{
 						Database.Put(Constants.RavenReplicationVersionHiLo,
-									 Guid.Empty,
+									 Etag.Empty,
 									 // sending empty guid means - ensure the that the document does NOT exists
 									 RavenJObject.FromObject(RavenJObject.FromObject(new { Max = minNextMax + capacity })),
 									 new RavenJObject(),
 									 null);
+
 						return minNextMax + capacity;
 					}
+
 					var max = GetMaxFromDocument(document, minNextMax);
 					document.DataAsJson["Max"] = max + capacity;
 					Database.Put(Constants.RavenReplicationVersionHiLo, document.Etag,
@@ -102,6 +105,5 @@ namespace Raven.Bundles.Replication.Impl
 			max = document.DataAsJson.Value<long>("Max");
 			return Math.Max(max, minMax);
 		}
-
 	}
 }

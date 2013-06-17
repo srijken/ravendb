@@ -10,7 +10,6 @@ using Raven.Abstractions.Data;
 using Raven.Abstractions.Extensions;
 using Raven.Database.Bundles.Replication.Impl;
 using Raven.Database.Plugins;
-using Raven.Database.Plugins.Catalogs;
 using Raven.Json.Linq;
 
 namespace Raven.Bundles.Replication.Triggers
@@ -42,6 +41,7 @@ namespace Raven.Bundles.Replication.Triggers
 				var conflicts = conflictData.Value<RavenJArray>("Conflicts");
 				if (conflicts == null)
 					return;
+
 				foreach (var prop in conflicts)
 				{
 					var id = prop.Value<string>();

@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Raven.Abstractions.Extensions;
 using Raven.Bundles.Encryption.Settings;
 
@@ -40,12 +36,12 @@ namespace Raven.Bundles.Encryption.Streams
 
 			isReadonly = !stream.CanWrite;
 
-			this.settings = encryptionSettings;
+			settings = encryptionSettings;
 			this.key = key;
 			this.stream = stream;
 
-			this.header = ReadOrWriteHeader(defaultBlockSize);
-			this.footer = ReadOrWriteFooter();
+			header = ReadOrWriteHeader(defaultBlockSize);
+			footer = ReadOrWriteFooter();
 		}
 
 		public EncryptedFile.Header Header
@@ -148,7 +144,7 @@ namespace Raven.Bundles.Encryption.Streams
 				if (blockNumber < 0)
 					throw new ArgumentOutOfRangeException("blockNumber");
 
-				long position = header.GetPhysicalPositionFromBlockNumber(blockNumber);
+				var position = header.GetPhysicalPositionFromBlockNumber(blockNumber);
 				if (stream.Length < position + header.IVSize + header.EncryptedBlockSize + EncryptedFile.Footer.FooterSize)
 				{
 					return new EncryptedFile.Block
@@ -194,7 +190,7 @@ namespace Raven.Bundles.Encryption.Streams
 				if (block.Data == null || block.Data.Length != header.DecryptedBlockSize)
 					throw new ArgumentException("Block must have data with length == " + header.DecryptedBlockSize);
 
-				long position = header.GetPhysicalPositionFromBlockNumber(block.BlockNumber);
+				var position = header.GetPhysicalPositionFromBlockNumber(block.BlockNumber);
 				if (stream.Length - EncryptedFile.Footer.FooterSize < position)
 				{
 					throw new InvalidOperationException("Write past end of file.");

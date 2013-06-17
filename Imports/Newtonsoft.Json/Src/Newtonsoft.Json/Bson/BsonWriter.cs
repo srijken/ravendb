@@ -27,6 +27,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE40 || PORTABLE)
+using System.Numerics;
+#endif
 using System.Text;
 using Raven.Imports.Newtonsoft.Json.Utilities;
 using Raven.Imports.Newtonsoft.Json.Linq;
@@ -35,7 +38,7 @@ using System.Globalization;
 namespace Raven.Imports.Newtonsoft.Json.Bson
 {
   /// <summary>
-  /// Represents a writer that provides a fast, non-cached, forward-only way of generating Json data.
+  /// Represents a writer that provides a fast, non-cached, forward-only way of generating JSON data.
   /// </summary>
   public class BsonWriter : JsonWriter
   {
@@ -218,6 +221,25 @@ namespace Raven.Imports.Newtonsoft.Json.Bson
     }
 
     #region WriteValue methods
+    /// <summary>
+    /// Writes a <see cref="Object"/> value.
+    /// An error will raised if the value cannot be written as a single JSON token.
+    /// </summary>
+    /// <param name="value">The <see cref="Object"/> value to write.</param>
+    public override void WriteValue(object value)
+    {
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE || PORTABLE40)
+      if (value is BigInteger)
+      {
+        InternalWriteValue(JsonToken.Integer);
+        AddToken(new BsonBinary(((BigInteger)value).ToByteArray(), BsonBinaryType.Binary));
+      }
+      else
+#endif
+      {
+        base.WriteValue(value);
+      }
+    }
 
     /// <summary>
     /// Writes a null value.
@@ -357,7 +379,7 @@ namespace Raven.Imports.Newtonsoft.Json.Bson
     {
       base.WriteValue(value);
       string s = null;
-#if !(NETFX_CORE || PORTABLE)
+#if !(NETFX_CORE || PORTABLE40 || PORTABLE)
       s = value.ToString(CultureInfo.InvariantCulture);
 #else
       s = value.ToString();
@@ -403,11 +425,11 @@ namespace Raven.Imports.Newtonsoft.Json.Bson
     public override void WriteValue(DateTime value)
     {
       base.WriteValue(value);
-      value = JsonConvert.EnsureDateTime(value, DateTimeZoneHandling);
+      value = DateTimeUtils.EnsureDateTime(value, DateTimeZoneHandling);
       AddValue(value, BsonType.Date);
     }
 
-#if !PocketPC && !NET20
+#if !NET20
     /// <summary>
     /// Writes a <see cref="DateTimeOffset"/> value.
     /// </summary>
@@ -426,7 +448,7 @@ namespace Raven.Imports.Newtonsoft.Json.Bson
     public override void WriteValue(byte[] value)
     {
       base.WriteValue(value);
-      AddValue(value, BsonType.Binary);
+      AddToken(new BsonBinary(value, BsonBinaryType.Binary));
     }
 
     /// <summary>
@@ -436,7 +458,7 @@ namespace Raven.Imports.Newtonsoft.Json.Bson
     public override void WriteValue(Guid value)
     {
       base.WriteValue(value);
-      AddToken(new BsonString(value.ToString(), true));
+      AddToken(new BsonBinary(value.ToByteArray(), BsonBinaryType.Uuid));
     }
 
     /// <summary>
@@ -458,13 +480,12 @@ namespace Raven.Imports.Newtonsoft.Json.Bson
       base.WriteValue(value);
       AddToken(new BsonString(value.ToString(), true));
     }
-
     #endregion
 
     /// <summary>
     /// Writes a <see cref="T:Byte[]"/> value that represents a BSON object id.
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value">The Object ID value to write.</param>
     public void WriteObjectId(byte[] value)
     {
       ValidationUtils.ArgumentNotNull(value, "value");
@@ -473,6 +494,7 @@ namespace Raven.Imports.Newtonsoft.Json.Bson
         throw JsonWriterException.Create(this, "An object id must be 12 bytes", null);
 
       // hack to update the writer state
+      UpdateScopeWithFinishedValue();
       AutoComplete(JsonToken.Undefined);
       AddValue(value, BsonType.Oid);
     }
@@ -487,6 +509,7 @@ namespace Raven.Imports.Newtonsoft.Json.Bson
       ValidationUtils.ArgumentNotNull(pattern, "pattern");
 
       // hack to update the writer state
+      UpdateScopeWithFinishedValue();
       AutoComplete(JsonToken.Undefined);
       AddToken(new BsonRegex(pattern, options));
     }

@@ -34,9 +34,9 @@ using Raven.Imports.Newtonsoft.Json.Utilities;
 #if !NETFX_CORE
 using NUnit.Framework;
 #else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestFixture = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using TestFixture = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestClassAttribute;
+using Test = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestMethodAttribute;
 #endif
 using Raven.Imports.Newtonsoft.Json.Schema;
 using System.IO;
@@ -90,7 +90,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Schema
       Assert.IsTrue(o.IsValid(schema));
     }
 
-#if !(NETFX_CORE || PORTABLE)
+#if !(NETFX_CORE || PORTABLE || PORTABLE40)
     [Test]
     public void Generate_DefaultValueAttributeTestClass()
     {
@@ -310,7 +310,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Schema
       Assert.IsTrue(v.IsValid(schema));
     }
 
-#if !(SILVERLIGHT || NETFX_CORE || PORTABLE)
+#if !(SILVERLIGHT || NETFX_CORE || PORTABLE || PORTABLE40)
     [Test]
     public void GenerateSchemaForISerializable()
     {
@@ -325,7 +325,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Schema
     }
 #endif
 
-#if !(NETFX_CORE || PORTABLE)
+#if !(NETFX_CORE || PORTABLE || PORTABLE40)
     [Test]
     public void GenerateSchemaForDBNull()
     {
@@ -357,7 +357,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Schema
         IList<JsonProperty> properties = base.CreateProperties(type, memberSerialization);
 
         JsonPropertyCollection c = new JsonPropertyCollection(type);
-        CollectionUtils.AddRange(c, (IEnumerable)properties.Where(m => m.PropertyName != "Root"));
+        c.AddRange(properties.Where(m => m.PropertyName != "Root"));
 
         return c;
       }
@@ -473,9 +473,9 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Schema
       JsonSchemaGenerator generator = new JsonSchemaGenerator();
       generator.UndefinedSchemaIdHandling = UndefinedSchemaIdHandling.UseTypeName;
       generator.ContractResolver = new CamelCasePropertyNamesContractResolver()
-        {
-#if !(SILVERLIGHT || NETFX_CORE || PORTABLE)
-          IgnoreSerializableAttribute = true
+      {
+#if !(SILVERLIGHT || NETFX_CORE || PORTABLE || PORTABLE40)
+        IgnoreSerializableAttribute = true
 #endif
         };
 
@@ -519,7 +519,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Schema
 }", json);
     }
 
-#if !(SILVERLIGHT || NETFX_CORE || PORTABLE)
+#if !(SILVERLIGHT || NETFX_CORE || PORTABLE || PORTABLE40)
     [Test]
     public void GenerateSchemaSerializable()
     {
@@ -619,20 +619,6 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Schema
         0,
         1,
         -1
-      ],
-      ""options"": [
-        {
-          ""value"": 0,
-          ""label"": ""No""
-        },
-        {
-          ""value"": 1,
-          ""label"": ""Asc""
-        },
-        {
-          ""value"": -1,
-          ""label"": ""Desc""
-        }
       ]
     }
   }

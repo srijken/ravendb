@@ -28,7 +28,7 @@ namespace Raven.Database.Backup
 		public event Action<string, BackupStatus.BackupMessageSeverity> Notify = delegate { };
 
 		private readonly Dictionary<string, long> fileToSize = new Dictionary<string, long>();
-		private static readonly ILog logger = LogManager.GetCurrentClassLogger();
+		private static readonly ILog Logger = LogManager.GetCurrentClassLogger();
 
 		private readonly string source;
 		private readonly string destination;
@@ -82,7 +82,7 @@ namespace Raven.Database.Backup
 			}
 			catch (Exception e) //cannot delete, probably because there is a file being written there
 			{
-				logger.WarnException(
+				Logger.WarnException(
 					string.Format("Could not delete {0}, will delete those on startup", tempPath),
 					e);
 
@@ -125,7 +125,7 @@ namespace Raven.Database.Backup
 			}
 			catch (Exception e)
 			{
-				logger.WarnException("Could not get directory files, maybe it was deleted", e);
+				Logger.WarnException("Could not get directory files, maybe it was deleted", e);
 				return;
 			}
 			for (int index = 0; index < sourceFilesSnapshot.Length; index++)

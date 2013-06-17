@@ -40,9 +40,6 @@ namespace Raven.Imports.Newtonsoft.Json.Converters
   /// <summary>
   /// Converts an <see cref="Enum"/> to and from its name string value.
   /// </summary>
-  /// <summary>
-  /// Converts an <see cref="Enum"/> to and from its name string value.
-  /// </summary>
   public class StringEnumConverter : JsonConverter
   {
     private readonly Dictionary<Type, BidirectionalDictionary<string, string>> _enumMemberNamesPerType = new Dictionary<Type, BidirectionalDictionary<string, string>>();
@@ -73,23 +70,31 @@ namespace Raven.Imports.Newtonsoft.Json.Converters
 
       if (char.IsNumber(enumName[0]) || enumName[0] == '-')
       {
+        // enum value has no name so write number
         writer.WriteValue(value);
       }
       else
       {
         BidirectionalDictionary<string, string> map = GetEnumNameMap(e.GetType());
 
-        string resolvedEnumName;
-        map.TryGetByFirst(enumName, out resolvedEnumName);
-        resolvedEnumName = resolvedEnumName ?? enumName;
-
-        if (CamelCaseText)
+        string[] names = enumName.Split(',');
+        for (int i = 0; i < names.Length; i++)
         {
-          string[] names = resolvedEnumName.Split(',').Select(item => StringUtils.ToCamelCase(item.Trim())).ToArray();
-          resolvedEnumName = string.Join(", ", names);
+          string name = names[i].Trim();
+
+          string resolvedEnumName;
+          map.TryGetByFirst(name, out resolvedEnumName);
+          resolvedEnumName = resolvedEnumName ?? name;
+
+          if (CamelCaseText)
+            resolvedEnumName = StringUtils.ToCamelCase(resolvedEnumName);
+
+          names[i] = resolvedEnumName;
         }
 
-        writer.WriteValue(resolvedEnumName);
+        string finalName = string.Join(", ", names);
+
+        writer.WriteValue(finalName);
       }
     }
 
@@ -103,9 +108,8 @@ namespace Raven.Imports.Newtonsoft.Json.Converters
     /// <returns>The object value.</returns>
     public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
-      Type t = (ReflectionUtils.IsNullableType(objectType))
-      ? Nullable.GetUnderlyingType(objectType)
-      : objectType;
+      bool isNullable = ReflectionUtils.IsNullableType(objectType);
+      Type t = isNullable ? Nullable.GetUnderlyingType(objectType) : objectType;
 
       if (reader.TokenType == JsonToken.Null)
       {
@@ -115,27 +119,57 @@ namespace Raven.Imports.Newtonsoft.Json.Converters
         return null;
       }
 
-      if (reader.TokenType == JsonToken.String)
+      try
       {
-        var map = GetEnumNameMap(t);
-        string resolvedEnumName;
-        map.TryGetBySecond(reader.Value.ToString(), out resolvedEnumName);
-        resolvedEnumName = resolvedEnumName ?? reader.Value.ToString();
+        if (reader.TokenType == JsonToken.String)
+        {
+          string enumText = reader.Value.ToString();
+          if (enumText == string.Empty && isNullable)
+            return null;
 
-        return Enum.Parse(t, resolvedEnumName, true);
+          string finalEnumText;
+
+          BidirectionalDictionary<string, string> map = GetEnumNameMap(t);
+          if (enumText.IndexOf(',') != -1)
+          {
+            string[] names = enumText.Split(',');
+            for (int i = 0; i < names.Length; i++)
+            {
+              string name = names[i].Trim();
+
+              names[i] = ResolvedEnumName(map, name);
+            }
+
+            finalEnumText = string.Join(", ", names);
+          }
+          else
+          {
+            finalEnumText = ResolvedEnumName(map, enumText);
+          }
+
+          return Enum.Parse(t, finalEnumText, true);
+        }
+
+        if (reader.TokenType == JsonToken.Integer)
+          return ConvertUtils.ConvertOrCast(reader.Value, CultureInfo.InvariantCulture, t);
+      }
+      catch (Exception ex)
+      {
+        throw JsonSerializationException.Create(reader, "Error converting value {0} to type '{1}'.".FormatWith(CultureInfo.InvariantCulture, MiscellaneousUtils.FormatValueForPrint(reader.Value), objectType), ex);
       }
 
-      if (reader.TokenType == JsonToken.Integer)
-        return ConvertUtils.ConvertOrCast(reader.Value, CultureInfo.InvariantCulture, t);
 
       throw JsonSerializationException.Create(reader, "Unexpected token when parsing enum. Expected String or Integer, got {0}.".FormatWith(CultureInfo.InvariantCulture, reader.TokenType));
     }
 
-    /// <summary>
-    /// A cached representation of the Enum string representation to respect per Enum field name.
-    /// </summary>
-    /// <param name="t">The type of the Enum.</param>
-    /// <returns>A map of enum field name to either the field name, or the configured enum member name (<see cref="EnumMemberAttribute"/>).</returns>
+    private static string ResolvedEnumName(BidirectionalDictionary<string, string> map, string enumText)
+    {
+      string resolvedEnumName;
+      map.TryGetBySecond(enumText, out resolvedEnumName);
+      resolvedEnumName = resolvedEnumName ?? enumText;
+      return resolvedEnumName;
+    }
+
     private BidirectionalDictionary<string, string> GetEnumNameMap(Type t)
     {
       BidirectionalDictionary<string, string> map;
@@ -156,7 +190,7 @@ namespace Raven.Imports.Newtonsoft.Json.Converters
             string n1 = f.Name;
             string n2;
             
-#if !NET20
+#if !NET20 && !MONO
             n2 = f.GetCustomAttributes(typeof (EnumMemberAttribute), true)
                           .Cast<EnumMemberAttribute>()
                           .Select(a => a.Value)
@@ -172,7 +206,7 @@ namespace Raven.Imports.Newtonsoft.Json.Converters
                 .FormatWith(CultureInfo.InvariantCulture, n2, t.Name));
             }
 
-            map.Add(n1, n2);
+            map.Set(n1, n2);
           }
 
           _enumMemberNamesPerType[t] = map;

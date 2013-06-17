@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using Raven.Abstractions.Data;
-using Raven.Abstractions.Extensions;
 using Raven.Database;
-using Raven.Database.Plugins;
 using Raven.Json.Linq;
 
 namespace Raven.Bundles.Encryption.Settings
@@ -27,7 +22,6 @@ namespace Raven.Bundles.Encryption.Settings
 
 				return new EncryptionSettings(key, type, encryptIndexes);
 			});
-
 
 			return result;
 		}
@@ -74,7 +68,7 @@ namespace Raven.Bundles.Encryption.Settings
 			if (result == null)
 				throw new ConfigurationErrorsException("Unknown type for encryption: " + typeName);
 
-			if (!result.IsSubclassOf(typeof(System.Security.Cryptography.SymmetricAlgorithm)))
+			if (!result.IsSubclassOf(typeof(SymmetricAlgorithm)))
 				throw new ConfigurationErrorsException("The encryption algorithm type must be a subclass of System.Security.Cryptography.SymmetricAlgorithm.");
 			if (result.IsAbstract)
 				throw new ConfigurationErrorsException("Cannot use an abstract type for an encryption algorithm.");
@@ -119,7 +113,7 @@ namespace Raven.Bundles.Encryption.Settings
 		private static bool EncryptedDocumentsExist(DocumentDatabase database)
 		{
 			const int pageSize = 10;
-			int index = 0;
+			var index = 0;
 			while (true)
 			{
 				var array = database.GetDocuments(index, index + pageSize, null);

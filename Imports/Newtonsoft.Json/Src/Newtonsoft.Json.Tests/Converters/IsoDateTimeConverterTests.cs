@@ -28,9 +28,9 @@ using Raven.Imports.Newtonsoft.Json.Tests.TestObjects;
 #if !NETFX_CORE
 using NUnit.Framework;
 #else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestFixture = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using TestFixture = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestClassAttribute;
+using Test = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestMethodAttribute;
 #endif
 using Raven.Imports.Newtonsoft.Json.Converters;
 using Raven.Imports.Newtonsoft.Json.Utilities;
@@ -61,6 +61,13 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Converters
       Assert.AreEqual(DateTimeStyles.None, converter.DateTimeStyles);
     }
 
+    public static string GetUtcOffsetText(DateTime d)
+    {
+      TimeSpan utcOffset = d.GetUtcOffset();
+
+      return utcOffset.Hours.ToString("+00;-00", CultureInfo.InvariantCulture) + ":" + utcOffset.Minutes.ToString("00;00", CultureInfo.InvariantCulture);
+    }
+
     [Test]
     public void SerializeDateTime()
     {
@@ -76,7 +83,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Converters
 
       d = new DateTime(2000, 12, 15, 22, 11, 3, 55, DateTimeKind.Local);
       result = JsonConvert.SerializeObject(d, converter);
-      Assert.AreEqual(@"""2000-12-15T22:11:03.055" + d.GetUtcOffsetText() + @"""", result);
+      Assert.AreEqual(@"""2000-12-15T22:11:03.055" + GetUtcOffsetText(d) + @"""", result);
     }
 
     [Test]
@@ -149,7 +156,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Converters
     }
 #endif
 
-#if !PocketPC && !NET20
+#if !NET20
     [Test]
     public void SerializeDateTimeOffset()
     {

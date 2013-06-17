@@ -24,6 +24,8 @@
 #endregion
 
 using System;
+using Raven.Imports.Newtonsoft.Json.Utilities;
+
 #if NET20
 using Raven.Imports.Newtonsoft.Json.Utilities.LinqBridge;
 #endif
@@ -36,6 +38,11 @@ namespace Raven.Imports.Newtonsoft.Json.Serialization
   public class JsonProperty
   {
     internal Required? _required;
+    internal bool _hasExplicitDefaultValue;
+    internal object _defaultValue;
+
+    private string _propertyName;
+    private bool _skipPropertyNameEscape;
 
     // use to cache contract during deserialization
     internal JsonContract PropertyContract { get; set; }
@@ -44,7 +51,35 @@ namespace Raven.Imports.Newtonsoft.Json.Serialization
     /// Gets or sets the name of the property.
     /// </summary>
     /// <value>The name of the property.</value>
-    public string PropertyName { get; set; }
+    public string PropertyName
+    {
+      get { return _propertyName; }
+      set
+      {
+        _propertyName = value;
+        CalculateSkipPropertyNameEscape();
+      }
+    }
+
+    private void CalculateSkipPropertyNameEscape()
+    {
+      if (_propertyName == null)
+      {
+        _skipPropertyNameEscape = false;
+      }
+      else
+      {
+        _skipPropertyNameEscape = true;
+        foreach (char c in _propertyName)
+        {
+          if (!char.IsLetterOrDigit(c) && c != '_' && c != '@')
+          {
+            _skipPropertyNameEscape = false;
+            break;
+          }
+        }
+      }
+    }
 
     /// <summary>
     /// Gets or sets the type that declared this property.
@@ -108,10 +143,35 @@ namespace Raven.Imports.Newtonsoft.Json.Serialization
     public bool Writable { get; set; }
 
     /// <summary>
+    /// Gets a value indicating whether this <see cref="JsonProperty"/> has a member attribute.
+    /// </summary>
+    /// <value><c>true</c> if has a member attribute; otherwise, <c>false</c>.</value>
+    public bool HasMemberAttribute { get; set; }
+
+    /// <summary>
     /// Gets the default value.
     /// </summary>
     /// <value>The default value.</value>
-    public object DefaultValue { get; set; }
+    public object DefaultValue
+    {
+      get
+      {
+        return _defaultValue;
+      }
+      set
+      {
+        _hasExplicitDefaultValue = true;
+        _defaultValue = value;
+      }
+    }
+
+    internal object GetResolvedDefaultValue()
+    {
+      if (!_hasExplicitDefaultValue && PropertyType != null)
+        return ReflectionUtils.GetDefaultValue(PropertyType);
+
+      return _defaultValue;
+    }
 
     /// <summary>
     /// Gets a value indicating whether this <see cref="JsonProperty"/> is required.
@@ -213,5 +273,13 @@ namespace Raven.Imports.Newtonsoft.Json.Serialization
     /// </summary>
     /// <value>The collection's items reference loop handling.</value>
     public ReferenceLoopHandling? ItemReferenceLoopHandling { get; set; }
+
+    internal void WritePropertyName(JsonWriter writer)
+    {
+      if (_skipPropertyNameEscape)
+        writer.WritePropertyName(PropertyName, false);
+      else
+        writer.WritePropertyName(PropertyName);
+    }
   }
 }

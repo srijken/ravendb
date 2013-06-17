@@ -38,7 +38,6 @@ namespace Raven.Bundles.Replication.Responders
 		[ImportMany]
 		public IEnumerable<AbstractDocumentReplicationConflictResolver> ReplicationConflictResolvers { get; set; }
 
-
 		public override void Respond(IHttpContext context)
 		{
 			var src = context.Request.QueryString["from"];
@@ -47,21 +46,25 @@ namespace Raven.Bundles.Replication.Responders
 				context.SetStatusToBadRequest();
 				return;
 			}
+
 			while (src.EndsWith("/"))
 				src = src.Substring(0, src.Length - 1);// remove last /, because that has special meaning for Raven
+
 			if (string.IsNullOrEmpty(src))
 			{
 				context.SetStatusToBadRequest();
 				return;
 			}
+
 			var array = context.ReadJsonArray();
 			if (ReplicationTask != null) 
 				ReplicationTask.HandleHeartbeat(src);
+
 			using (Database.DisableAllTriggersForCurrentThread())
 			{
 				Database.TransactionalStorage.Batch(actions =>
 				{
-					string lastEtag = Guid.Empty.ToString();
+					var lastEtag = Etag.Empty.ToString();
 					foreach (RavenJObject document in array)
 					{
 						var metadata = document.Value<RavenJObject>("@metadata");
@@ -79,21 +82,23 @@ namespace Raven.Bundles.Replication.Responders
 
 					var replicationDocKey = Constants.RavenReplicationSourcesBasePath + "/" + src;
 					var replicationDocument = Database.Get(replicationDocKey, null);
-					var lastAttachmentId = Guid.Empty;
+					var lastAttachmentId = Etag.Empty;
 					if (replicationDocument != null)
 					{
 						lastAttachmentId =
 							replicationDocument.DataAsJson.JsonDeserialization<SourceReplicationInformation>().
 								LastAttachmentEtag;
 					}
+
 					Guid serverInstanceId;
 					if (Guid.TryParse(context.Request.QueryString["dbid"], out serverInstanceId) == false)
 						serverInstanceId = Database.TransactionalStorage.Id;
+
 					Database.Put(replicationDocKey, null,
 								 RavenJObject.FromObject(new SourceReplicationInformation
 								 {
 									 Source = src,
-									 LastDocumentEtag = new Guid(lastEtag),
+									 LastDocumentEtag = Etag.Parse(lastEtag),
 									 LastAttachmentEtag = lastAttachmentId,
 									 ServerInstanceId = serverInstanceId
 								 }),

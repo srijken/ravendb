@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.Composition;
 using Raven.Abstractions.Data;
-using Raven.Bundles.Encryption.Settings;
 using Raven.Database.Plugins;
 using Raven.Json.Linq;
 

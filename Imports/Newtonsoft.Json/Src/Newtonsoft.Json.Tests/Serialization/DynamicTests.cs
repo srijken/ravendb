@@ -23,13 +23,14 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(NET35 || NET20 || WINDOWS_PHONE || PORTABLE)
+#if !(NET35 || NET20 || PORTABLE40)
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization.Formatters;
 using System.Text;
@@ -39,9 +40,9 @@ using Raven.Imports.Newtonsoft.Json.Utilities;
 #if !NETFX_CORE
 using NUnit.Framework;
 #else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestFixture = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using TestFixture = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestClassAttribute;
+using Test = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestMethodAttribute;
 #endif
 
 namespace Raven.Imports.Newtonsoft.Json.Tests.Serialization
@@ -49,79 +50,11 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Serialization
   [TestFixture]
   public class DynamicTests : TestFixtureBase
   {
-    public class DynamicChildObject
-    {
-      public string Text { get; set; }
-      public int Integer { get; set; }
-    }
-
-    public class TestDynamicObject : DynamicObject
-    {
-      private readonly Dictionary<string, object> _members;
-
-      public int Int;
-      public DynamicChildObject ChildObject { get; set; }
-
-      internal Dictionary<string, object> Members
-      {
-        get { return _members; }
-      }
-
-      public TestDynamicObject()
-      {
-        _members = new Dictionary<string, object>();
-      }
-
-      public override IEnumerable<string> GetDynamicMemberNames()
-      {
-        return _members.Keys.Union(new[] { "Int", "ChildObject" });
-      }
-
-      public override bool TryConvert(ConvertBinder binder, out object result)
-      {
-        Type targetType = binder.Type;
-
-        if (targetType == typeof(IDictionary<string, object>) ||
-            targetType == typeof(IDictionary))
-        {
-          result = new Dictionary<string, object>(_members);
-          return true;
-        }
-        else
-        {
-          return base.TryConvert(binder, out result);
-        }
-      }
-
-      public override bool TryDeleteMember(DeleteMemberBinder binder)
-      {
-        return _members.Remove(binder.Name);
-      }
-
-      public override bool TryGetMember(GetMemberBinder binder, out object result)
-      {
-        return _members.TryGetValue(binder.Name, out result);
-      }
-
-      public override bool TrySetMember(SetMemberBinder binder, object value)
-      {
-        _members[binder.Name] = value;
-        return true;
-      }
-    }
-
-    public class ErrorSettingDynamicObject : DynamicObject
-    {
-      public override bool TrySetMember(SetMemberBinder binder, object value)
-      {
-        return false;
-      }
-    }
-
     [Test]
     public void SerializeDynamicObject()
     {
       TestDynamicObject dynamicObject = new TestDynamicObject();
+      dynamicObject.Explicit = true;
 
       dynamic d = dynamicObject;
       d.Int = 1;
@@ -130,10 +63,13 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Serialization
 
       Dictionary<string, object> values = new Dictionary<string, object>();
 
+      IContractResolver c = DefaultContractResolver.Instance;
+      JsonDynamicContract dynamicContract = (JsonDynamicContract)c.ResolveContract(dynamicObject.GetType());
+
       foreach (string memberName in dynamicObject.GetDynamicMemberNames())
       {
         object value;
-        dynamicObject.TryGetMember(memberName, out value);
+        dynamicContract.TryGetMember(dynamicObject, memberName, out value);
 
         values.Add(memberName, value);
       }
@@ -144,6 +80,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Serialization
 
       string json = JsonConvert.SerializeObject(dynamicObject, Formatting.Indented);
       Assert.AreEqual(@"{
+  ""Explicit"": true,
   ""Decimal"": 99.9,
   ""Int"": 1,
   ""ChildObject"": {
@@ -153,6 +90,8 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Serialization
 }", json);
 
       TestDynamicObject newDynamicObject = JsonConvert.DeserializeObject<TestDynamicObject>(json);
+      Assert.AreEqual(true, newDynamicObject.Explicit);
+
       d = newDynamicObject;
 
       Assert.AreEqual(99.9, d.Decimal);
@@ -161,6 +100,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Serialization
       Assert.AreEqual(dynamicObject.ChildObject.Text, d.ChildObject.Text);
     }
 
+#if !(PORTABLE || PORTABLE40)
     [Test]
     public void SerializeDynamicObjectWithObjectTracking()
     {
@@ -181,8 +121,8 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Serialization
 
       Console.WriteLine(json);
 
-      string dynamicChildObjectTypeName = ReflectionUtils.GetTypeName(typeof(DynamicChildObject), FormatterAssemblyStyle.Full);
-      string expandoObjectTypeName = ReflectionUtils.GetTypeName(typeof(ExpandoObject), FormatterAssemblyStyle.Full);
+      string dynamicChildObjectTypeName = ReflectionUtils.GetTypeName(typeof(DynamicChildObject), FormatterAssemblyStyle.Full, null);
+      string expandoObjectTypeName = ReflectionUtils.GetTypeName(typeof(ExpandoObject), FormatterAssemblyStyle.Full, null);
 
       Assert.AreEqual(@"{
   ""$type"": """ + expandoObjectTypeName + @""",
@@ -209,6 +149,7 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Serialization
       Assert.AreEqual("Child text!", n.DynamicChildObject.Text);
       Assert.AreEqual(int.MinValue, n.DynamicChildObject.Integer);
     }
+#endif
 
     [Test]
     public void NoPublicDefaultConstructor()
@@ -308,6 +249,149 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Serialization
       DictionaryDynamicObject foo = JsonConvert.DeserializeObject<DictionaryDynamicObject>(json, settings);
 
       Assert.AreEqual(false, foo.Values["retweeted"]);
+    }
+
+    [Test]
+    public void SerializeDynamicObjectWithNullValueHandlingIgnore()
+    {
+      dynamic o = new TestDynamicObject();
+      o.Text = "Text!";
+      o.Int = int.MaxValue;
+      o.ChildObject = null; // Tests an explicitly defined property of a dynamic object with a null value.
+      o.DynamicChildObject = null; // vs. a completely dynamic defined property.
+
+      string json = JsonConvert.SerializeObject(o, Formatting.Indented, new JsonSerializerSettings
+        {
+          NullValueHandling = NullValueHandling.Ignore,
+        });
+
+      Console.WriteLine(json);
+
+      Assert.AreEqual(@"{
+  ""Explicit"": false,
+  ""Text"": ""Text!"",
+  ""Int"": 2147483647
+}", json);
+    }
+
+    [Test]
+    public void SerializeDynamicObjectWithNullValueHandlingInclude()
+    {
+      dynamic o = new TestDynamicObject();
+      o.Text = "Text!";
+      o.Int = int.MaxValue;
+      o.ChildObject = null; // Tests an explicitly defined property of a dynamic object with a null value.
+      o.DynamicChildObject = null; // vs. a completely dynamic defined property.
+
+      string json = JsonConvert.SerializeObject(o, Formatting.Indented, new JsonSerializerSettings
+        {
+          NullValueHandling = NullValueHandling.Include,
+        });
+
+      Console.WriteLine(json);
+
+      Assert.AreEqual(@"{
+  ""Explicit"": false,
+  ""Text"": ""Text!"",
+  ""DynamicChildObject"": null,
+  ""Int"": 2147483647,
+  ""ChildObject"": null
+}", json);
+    }
+
+    [Test]
+    public void SerializeDynamicObjectWithDefaultValueHandlingIgnore()
+    {
+      dynamic o = new TestDynamicObject();
+      o.Text = "Text!";
+      o.Int = int.MaxValue;
+      o.IntDefault = 0;
+      o.NUllableIntDefault = default(int?);
+      o.ChildObject = null; // Tests an explicitly defined property of a dynamic object with a null value.
+      o.DynamicChildObject = null; // vs. a completely dynamic defined property.
+
+      string json = JsonConvert.SerializeObject(o, Formatting.Indented, new JsonSerializerSettings
+      {
+        DefaultValueHandling = DefaultValueHandling.Ignore,
+      });
+
+      Console.WriteLine(json);
+
+      Assert.AreEqual(@"{
+  ""Text"": ""Text!"",
+  ""Int"": 2147483647
+}", json);
+    }
+  }
+
+  public class DynamicChildObject
+  {
+    public string Text { get; set; }
+    public int Integer { get; set; }
+  }
+
+  public class TestDynamicObject : DynamicObject
+  {
+    private readonly Dictionary<string, object> _members;
+
+    public int Int;
+    [JsonProperty]
+    public bool Explicit;
+    public DynamicChildObject ChildObject { get; set; }
+
+    internal Dictionary<string, object> Members
+    {
+      get { return _members; }
+    }
+
+    public TestDynamicObject()
+    {
+      _members = new Dictionary<string, object>();
+    }
+
+    public override IEnumerable<string> GetDynamicMemberNames()
+    {
+      return _members.Keys.Union(new[] { "Int", "ChildObject" });
+    }
+
+    public override bool TryConvert(ConvertBinder binder, out object result)
+    {
+      Type targetType = binder.Type;
+
+      if (targetType == typeof(IDictionary<string, object>) ||
+          targetType == typeof(IDictionary))
+      {
+        result = new Dictionary<string, object>(_members);
+        return true;
+      }
+      else
+      {
+        return base.TryConvert(binder, out result);
+      }
+    }
+
+    public override bool TryDeleteMember(DeleteMemberBinder binder)
+    {
+      return _members.Remove(binder.Name);
+    }
+
+    public override bool TryGetMember(GetMemberBinder binder, out object result)
+    {
+      return _members.TryGetValue(binder.Name, out result);
+    }
+
+    public override bool TrySetMember(SetMemberBinder binder, object value)
+    {
+      _members[binder.Name] = value;
+      return true;
+    }
+  }
+
+  public class ErrorSettingDynamicObject : DynamicObject
+  {
+    public override bool TrySetMember(SetMemberBinder binder, object value)
+    {
+      return false;
     }
   }
 }

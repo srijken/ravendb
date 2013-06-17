@@ -23,15 +23,15 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(SILVERLIGHT || NETFX_CORE || PORTABLE)
+#if !(SILVERLIGHT || NETFX_CORE || PORTABLE || PORTABLE40)
 using System;
 using Raven.Imports.Newtonsoft.Json.Converters;
 #if !NETFX_CORE
 using NUnit.Framework;
 #else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestFixture = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using TestFixture = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestClassAttribute;
+using Test = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestMethodAttribute;
 #endif
 using Raven.Imports.Newtonsoft.Json.Serialization;
 using Raven.Imports.Newtonsoft.Json.Tests.TestObjects;
@@ -402,6 +402,56 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Converters
       Assert.AreEqual(c.Middle, c2.Middle);
       Assert.AreEqual(c.Table.Rows.Count, c2.Table.Rows.Count);
       Assert.AreEqual(c.After, c2.After);
+    }
+
+    [Test]
+    public void SerializedTypedDataSet()
+    {
+      CustomerDataSet ds = new CustomerDataSet();
+      ds.Customers.AddCustomersRow("234");
+
+      string json = JsonConvert.SerializeObject(ds, Formatting.Indented);
+
+      Assert.AreEqual(@"{
+  ""Customers"": [
+    {
+      ""CustomerID"": ""234""
+    }
+  ]
+}", json);
+
+      CustomerDataSet ds1 = new CustomerDataSet();
+      DataTable table = ds1.Tables["Customers"];
+      DataRow row = ds1.Tables["Customers"].NewRow();
+      row["CustomerID"] = "234";
+
+      table.Rows.Add(row);
+
+      string json1 = JsonConvert.SerializeObject(ds1, Formatting.Indented);
+
+      Assert.AreEqual(@"{
+  ""Customers"": [
+    {
+      ""CustomerID"": ""234""
+    }
+  ]
+}", json1);
+    }
+
+    [Test]
+    public void DeserializedTypedDataSet()
+    {
+      string json = @"{
+  ""Customers"": [
+    {
+      ""CustomerID"": ""234""
+    }
+  ]
+}";
+      
+      var ds = JsonConvert.DeserializeObject<CustomerDataSet>(json);
+
+      Assert.AreEqual("234", ds.Customers[0].CustomerID);
     }
   }
 }

@@ -29,9 +29,9 @@ using System.ComponentModel;
 #if !NETFX_CORE
 using NUnit.Framework;
 #else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestFixture = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using TestFixture = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestClassAttribute;
+using Test = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestMethodAttribute;
 #endif
 using Raven.Imports.Newtonsoft.Json.Linq;
 #if NET20
@@ -45,6 +45,26 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Linq
   [TestFixture]
   public class JArrayTests : TestFixtureBase
   {
+    [Test]
+    public void RemoveSpecificAndRemoveSelf()
+    {
+      JObject o = new JObject
+      {
+        {"results", new JArray(1, 2, 3, 4)}
+      };
+
+      JArray a = (JArray)o["results"];
+
+      var last = a.Last();
+
+      Assert.IsTrue(a.Remove(last));
+
+      last = a.Last();
+      last.Remove();
+
+      Assert.AreEqual(2, a.Count);
+    }
+
     [Test]
     public void Clear()
     {
@@ -457,7 +477,7 @@ Parameter name: index",
     }
 
 
-#if !(SILVERLIGHT || NETFX_CORE || PORTABLE)
+#if !(SILVERLIGHT || NETFX_CORE || PORTABLE || PORTABLE40)
     [Test]
     public void ITypedListGetItemProperties()
     {
@@ -560,6 +580,22 @@ Parameter name: index",
           {
             JArray.Parse(json);
           });
+    }
+
+    [Test]
+    public void ToListOnEmptyArray()
+    {
+      string json = @"{""decks"":[]}";
+
+      JArray decks = (JArray)JObject.Parse(json)["decks"];
+      IList<JToken> l = decks.ToList();
+      Assert.AreEqual(0, l.Count);
+
+      json = @"{""decks"":[1]}";
+
+      decks = (JArray)JObject.Parse(json)["decks"];
+      l = decks.ToList();
+      Assert.AreEqual(1, l.Count);
     }
   }
 }

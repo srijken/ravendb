@@ -20,7 +20,7 @@ namespace Raven.Bundles.Replication.Responders
 	[InheritedExport(typeof(AbstractRequestResponder))]
 	public class ReplicationLastEtagResponder : AbstractRequestResponder
 	{
-		private ILog log = LogManager.GetCurrentClassLogger();
+		private readonly ILog log = LogManager.GetCurrentClassLogger();
 
 		public override void Respond(IHttpContext context)
 		{
@@ -34,8 +34,10 @@ namespace Raven.Bundles.Replication.Responders
 				context.SetStatusToBadRequest();
 				return;
 			}
+
 			while (src.EndsWith("/"))
 				src = src.Substring(0, src.Length - 1);// remove last /, because that has special meaning for Raven
+
 			if (string.IsNullOrEmpty(src))
 			{
 				context.SetStatusToBadRequest();
@@ -49,8 +51,7 @@ namespace Raven.Bundles.Replication.Responders
 					break;
 				case "PUT":
 					OnPut(context, src);
-					break;	
-
+					break;
 			}
 		}
 
@@ -62,7 +63,7 @@ namespace Raven.Bundles.Replication.Responders
 
 				SourceReplicationInformation sourceReplicationInformation;
 
-				Guid serverInstanceId = Database.TransactionalStorage.Id; // this is my id, sent to the remote serve
+				var serverInstanceId = Database.TransactionalStorage.Id; // this is my id, sent to the remote serve
 
 				if (document == null)
 				{
@@ -92,27 +93,35 @@ namespace Raven.Bundles.Replication.Responders
 
 				SourceReplicationInformation sourceReplicationInformation;
 
-				Guid? docEtag = null, attachmentEtag = null;
-				Guid val;
-				if(Guid.TryParse(context.Request.QueryString["docEtag"], out val))
+				Etag docEtag = null, attachmentEtag = null;
+				try
 				{
-					docEtag = val;
+					docEtag = Etag.Parse(context.Request.QueryString["docEtag"]);
 				}
-				if(Guid.TryParse(context.Request.QueryString["attachmentEtag"], out val))
+				catch
 				{
-					attachmentEtag = val;
+
 				}
+				try
+				{
+					attachmentEtag = Etag.Parse(context.Request.QueryString["attachmentEtag"]);
+				}
+				catch
+				{
+
+				}
+
 				Guid serverInstanceId;
 				if (Guid.TryParse(context.Request.QueryString["dbid"], out serverInstanceId) == false)
 					serverInstanceId = Database.TransactionalStorage.Id;
-				
+
 				if (document == null)
 				{
 					sourceReplicationInformation = new SourceReplicationInformation()
 					{
 						ServerInstanceId = serverInstanceId,
-						LastAttachmentEtag = attachmentEtag ?? Guid.Empty,
-						LastDocumentEtag = docEtag??Guid.Empty,
+						LastAttachmentEtag = attachmentEtag ?? Etag.Empty,
+						LastDocumentEtag = docEtag ?? Etag.Empty,
 						Source = src
 					};
 				}
@@ -124,7 +133,7 @@ namespace Raven.Bundles.Replication.Responders
 					sourceReplicationInformation.LastAttachmentEtag = attachmentEtag ?? sourceReplicationInformation.LastAttachmentEtag;
 				}
 
-				var etag = document == null ? Guid.Empty : document.Etag;
+				var etag = document == null ? Etag.Empty : document.Etag;
 				var metadata = document == null ? new RavenJObject() : document.Metadata;
 
 				var newDoc = RavenJObject.FromObject(sourceReplicationInformation);

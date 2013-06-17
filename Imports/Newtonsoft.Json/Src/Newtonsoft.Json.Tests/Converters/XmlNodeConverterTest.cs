@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if !(SILVERLIGHT || NETFX_CORE || PORTABLE)
+#if !(SILVERLIGHT || NETFX_CORE || PORTABLE || PORTABLE40)
 using System;
 using System.Collections.Generic;
 using Raven.Imports.Newtonsoft.Json.Tests.Serialization;
@@ -31,9 +31,9 @@ using Raven.Imports.Newtonsoft.Json.Tests.TestObjects;
 #if !NETFX_CORE
 using NUnit.Framework;
 #else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestFixture = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using TestFixture = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestClassAttribute;
+using Test = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestMethodAttribute;
 #endif
 using Raven.Imports.Newtonsoft.Json;
 using System.IO;
@@ -1315,6 +1315,27 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Converters
     }
 
     [Test]
+    public void EmtpyElementWithArrayAttributeShouldWriteElement()
+    {
+      string xml = @"<root>
+<Reports d1p1:Array=""true"" xmlns:d1p1=""http://james.newtonking.com/projects/json"" />
+</root>";
+
+      XmlDocument d = new XmlDocument();
+      d.LoadXml(xml);
+
+      string json = JsonConvert.SerializeXmlNode(d, Formatting.Indented);
+
+      Assert.AreEqual(@"{
+  ""root"": {
+    ""Reports"": [
+      {}
+    ]
+  }
+}", json);
+    }
+
+    [Test]
     public void DeserializeNonInt64IntegerValues()
     {
       var dict = new Dictionary<string, object> { { "Int16", (short)1 }, { "Float", 2f }, { "Int32", 3 } };
@@ -1855,6 +1876,53 @@ namespace Raven.Imports.Newtonsoft.Json.Tests.Converters
 
       Assert.AreEqual(@"<item action=""update"" itemid=""1"" description=""temp""><elements action=""none"" id=""2"" /><elements action=""none"" id=""3"" /></item>", xmldoc.InnerXml);
     }
+
+    [Test]
+    public void SerializingXmlNamespaceScope()
+    {
+      var xmlString = @"<root xmlns=""http://www.example.com/ns"">
+  <a/>
+  <bns:b xmlns:bns=""http://www.example.com/ns""/>
+  <c/>
+</root>";
+
+#if !NET20
+      var xml = XElement.Parse(xmlString);
+
+      var json1 = JsonConvert.SerializeObject(xml);
+
+      Assert.AreEqual(@"{""root"":{""@xmlns"":""http://www.example.com/ns"",""a"":null,""bns:b"":{""@xmlns:bns"":""http://www.example.com/ns""},""c"":null}}", json1);
+#endif
+#if !(SILVERLIGHT || NETFX_CORE)
+      var xml1 = new XmlDocument();
+      xml1.LoadXml(xmlString);
+
+      var json2 = JsonConvert.SerializeObject(xml1);
+
+      Assert.AreEqual(@"{""root"":{""@xmlns"":""http://www.example.com/ns"",""a"":null,""bns:b"":{""@xmlns:bns"":""http://www.example.com/ns""},""c"":null}}", json2);
+#endif
+    }
+
+#if !NET20
+    public class NullableXml
+    {
+      public string Name;
+      public XElement notNull;
+      public XElement isNull;
+    }
+
+    [Test]
+    public void SerializeAndDeserializeNullableXml()
+    {
+      var xml = new NullableXml { Name = "test", notNull = XElement.Parse("<root>test</root>") };
+      var json = JsonConvert.SerializeObject(xml);
+
+      var w2 = JsonConvert.DeserializeObject<NullableXml>(json);
+      Assert.AreEqual(xml.Name, w2.Name);
+      Assert.AreEqual(xml.isNull, w2.isNull);
+      Assert.AreEqual(xml.notNull.ToString(), w2.notNull.ToString());
+    }
+#endif
   }
 }
 #endif

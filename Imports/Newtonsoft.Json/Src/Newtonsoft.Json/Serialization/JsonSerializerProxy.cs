@@ -49,6 +49,12 @@ namespace Raven.Imports.Newtonsoft.Json.Serialization
       set { _serializer.ReferenceResolver = value; }
     }
 
+    public override ITraceWriter TraceWriter
+    {
+      get { return _serializer.TraceWriter; }
+      set { _serializer.TraceWriter = value; }
+    }
+
     public override JsonConverterCollection Converters
     {
       get { return _serializer.Converters; }
@@ -150,6 +156,30 @@ namespace Raven.Imports.Newtonsoft.Json.Serialization
       set { _serializer.DateParseHandling = value; }
     }
 
+    public override FloatFormatHandling FloatFormatHandling
+    {
+      get { return _serializer.FloatFormatHandling; }
+      set { _serializer.FloatFormatHandling = value; }
+    }
+
+    public override FloatParseHandling FloatParseHandling
+    {
+      get { return _serializer.FloatParseHandling; }
+      set { _serializer.FloatParseHandling = value; }
+    }
+
+    public override StringEscapeHandling StringEscapeHandling
+    {
+      get { return _serializer.StringEscapeHandling; }
+      set { _serializer.StringEscapeHandling = value; }
+    }
+
+    public override string DateFormatString
+    {
+      get { return _serializer.DateFormatString; }
+      set { _serializer.DateFormatString = value; }
+    }
+
     public override CultureInfo Culture
     {
       get { return _serializer.Culture; }
@@ -208,10 +238,10 @@ namespace Raven.Imports.Newtonsoft.Json.Serialization
         _serializer.Populate(reader, target);
     }
 
-    internal override void SerializeInternal(JsonWriter jsonWriter, object value)
+    internal override void SerializeInternal(JsonWriter jsonWriter, object value, Type rootType)
     {
       if (_serializerWriter != null)
-        _serializerWriter.Serialize(jsonWriter, value);
+        _serializerWriter.Serialize(jsonWriter, value, rootType);
       else
         _serializer.Serialize(jsonWriter, value);
     }

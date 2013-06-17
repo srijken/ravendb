@@ -394,7 +394,7 @@ namespace Raven.Studio.Models
 
 				case PatchOnOptions.Index:
 					return ApplicationModel.Database.Value.AsyncDatabaseCommands.GetIndexNamesAsync(0, 500)
-						.ContinueWith(t => (IList<object>) t.Result.Where(s => s.StartsWith(enteredText, StringComparison.InvariantCultureIgnoreCase)).Cast<object>().ToList());
+						.ContinueWith(t => (IList<object>) t.Result.Where(s => s.StartsWith(enteredText, StringComparison.OrdinalIgnoreCase)).Cast<object>().ToList());
 
 				default:
 					return null;
@@ -575,7 +575,7 @@ namespace Raven.Studio.Models
 
 		public override void Execute(object parameter)
 		{
-			AskUser.QuestionAsync("Save", "Please enter a name").ContinueOnSuccessInTheUIThread(name =>
+			AskUser.QuestionAsync("Save", "Please enter a name").ContinueOnSuccessInTheUIThread(async name =>
 			{
 				var doc = new PatchDocument
 				{
@@ -591,8 +591,8 @@ namespace Raven.Studio.Models
 					dbName = null;
 
 				var session = ApplicationModel.Current.Server.Value.DocumentStore.OpenAsyncSession(dbName);
-				session.Store(doc);
-				session.SaveChangesAsync().ContinueOnSuccessInTheUIThread(() => patchModel.UpdateDoc(name));
+				await session.StoreAsync(doc);
+				await session.SaveChangesAsync().ContinueOnSuccessInTheUIThread(() => patchModel.UpdateDoc(name));
 			});
 		}
 	}

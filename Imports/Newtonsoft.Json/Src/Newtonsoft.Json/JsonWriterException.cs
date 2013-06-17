@@ -33,7 +33,7 @@ namespace Raven.Imports.Newtonsoft.Json
   /// <summary>
   /// The exception thrown when an error occurs while reading Json text.
   /// </summary>
-#if !(SILVERLIGHT || WINDOWS_PHONE || NETFX_CORE || PORTABLE)
+#if !(SILVERLIGHT || WINDOWS_PHONE || NETFX_CORE || PORTABLE40 || PORTABLE)
   [Serializable]
 #endif
   public class JsonWriterException : JsonException
@@ -72,7 +72,7 @@ namespace Raven.Imports.Newtonsoft.Json
     {
     }
 
-#if !(WINDOWS_PHONE || SILVERLIGHT || NETFX_CORE || PORTABLE)
+#if !(WINDOWS_PHONE || SILVERLIGHT || NETFX_CORE || PORTABLE40 || PORTABLE)
     /// <summary>
     /// Initializes a new instance of the <see cref="JsonWriterException"/> class.
     /// </summary>
@@ -99,7 +99,7 @@ namespace Raven.Imports.Newtonsoft.Json
 
     internal static JsonWriterException Create(string path, string message, Exception ex)
     {
-      message = FormatExceptionMessage(null, path, message);
+      message = JsonPosition.FormatMessage(null, path, message);
 
       return new JsonWriterException(message, ex, path);
     }

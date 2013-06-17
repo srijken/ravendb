@@ -38,7 +38,7 @@ namespace Raven.Bundles.Replication.Triggers
 				var attachmentMetadata = GetAttachmentMetadata(key);
 				if (attachmentMetadata != null)
 				{
-					RavenJArray history = new RavenJArray(ReplicationData.GetHistory(metadata));
+					var history = new RavenJArray(ReplicationData.GetHistory(metadata));
 					metadata[Constants.RavenReplicationHistory] = history;
 
 					if (attachmentMetadata.ContainsKey(Constants.RavenReplicationVersion) &&

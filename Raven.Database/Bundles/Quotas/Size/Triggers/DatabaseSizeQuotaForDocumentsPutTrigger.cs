@@ -5,7 +5,6 @@ using Raven.Json.Linq;
 
 namespace Raven.Bundles.Quotas.Size.Triggers
 {
-
 	[InheritedExport(typeof(AbstractPutTrigger))]
 	[ExportMetadata("Bundle", "Quotas")]
 	public class DatabaseSizeQuotaForDocumentsPutTrigger : AbstractPutTrigger
@@ -15,6 +14,5 @@ namespace Raven.Bundles.Quotas.Size.Triggers
 		{
 			return SizeQuotaConfiguration.GetConfiguration(Database).AllowPut();
 		}
-
 	}
 }

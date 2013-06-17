@@ -35,14 +35,18 @@ using System.Security;
 [assembly: AssemblyTitle("Json.NET Tests Windows Phone")]
 #elif SILVERLIGHT
 [assembly: AssemblyTitle("Json.NET Tests Silverlight")]
-#elif PocketPC
-[assembly: AssemblyTitle("Json.NET Tests Compact")]
+#elif PORTABLE
+[assembly: AssemblyTitle("Json.NET Tests Portable")]
+#elif NETFX_CORE
+[assembly: AssemblyTitle("Json.NET Tests WinRT")]
 #elif NET20
 [assembly: AssemblyTitle("Json.NET Tests .NET 2.0")]
 #elif NET35
 [assembly: AssemblyTitle("Json.NET Tests .NET 3.5")]
+#elif NET40
+[assembly: AssemblyTitle("Json.NET Tests .NET 4.0")]
 #else
-[assembly: AssemblyTitle("Json.NET")]
+[assembly: AssemblyTitle("Json.NET Tests")]
 #endif
 
 [assembly: AssemblyDescription("")]
@@ -71,6 +75,4 @@ using System.Security;
 // You can specify all the values or you can default the Revision and Build Numbers 
 // by using the '*' as shown below:
 [assembly: AssemblyVersion("4.5.0.0")]
-#if !PocketPC
-[assembly: AssemblyFileVersion("4.5.6.14930")]
-#endif
+[assembly: AssemblyFileVersion("5.0.6.16207")]

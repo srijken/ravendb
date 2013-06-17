@@ -4,19 +4,16 @@
 // </copyright>
 //-----------------------------------------------------------------------
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Threading;
 using Raven.Abstractions.Data;
 using Raven.Bundles.Replication.Impl;
 using Raven.Database.Bundles.Replication.Impl;
-using Raven.Database.Impl;
 using Raven.Database.Plugins;
 using Raven.Json.Linq;
+using Raven.Abstractions.Extensions;
 
 namespace Raven.Bundles.Replication.Triggers
 {
-	using Raven.Abstractions.Extensions;
-
 	/// <summary>
 	/// We can't allow real deletes when using replication, because
 	/// then we won't have any way to replicate the delete. Instead
@@ -93,7 +90,7 @@ namespace Raven.Bundles.Replication.Triggers
 				if (conflictSource != currentSource)
 					continue;
 
-				this.deletedHistory.Value = new RavenJArray
+				deletedHistory.Value = new RavenJArray
 				{
 					new RavenJObject
 					{

@@ -57,7 +57,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\Net20\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;NET20</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
@@ -99,6 +99,7 @@
     <Compile Include="Serialization\JsonPropertyCollectionTests.cs" />
     <Compile Include="Serialization\NullValueHandlingTests.cs" />
     <Compile Include="Serialization\ReferenceLoopHandlingTests.cs" />
+    <Compile Include="Serialization\TraceWriterTests.cs" />
     <Compile Include="Serialization\WebApiIntegrationTests.cs" />
     <Compile Include="TestObjects\Bar.cs" />
     <Compile Include="TestObjects\Car.cs" />
@@ -108,6 +109,9 @@
     <Compile Include="TestObjects\Content.cs" />
     <Compile Include="TestObjects\ContentBaseClass.cs" />
     <Compile Include="TestObjects\ContentSubClass.cs" />
+    <Compile Include="TestObjects\CustomerDataSet.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="TestObjects\DictionaryInterfaceClass.cs" />
     <Compile Include="Serialization\EntitiesSerializationTests.cs" />
     <Compile Include="TestObjects\Event.cs" />
@@ -235,8 +239,11 @@
     <Compile Include="TestObjects\UserNullable.cs" />
     <Compile Include="TestObjects\VersionKeyedCollection.cs" />
     <Compile Include="TestObjects\WagePerson.cs" />
+    <Compile Include="Utilities\DateTimeUtilsTests.cs" />
     <Compile Include="Utilities\DynamicReflectionDelegateFactoryTests.cs" />
+    <Compile Include="Utilities\ExpressionReflectionDelegateFactoryTests.cs" />
     <Compile Include="Utilities\ReflectionUtilsTests.cs" />
+    <Compile Include="Utilities\StringUtilsTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />

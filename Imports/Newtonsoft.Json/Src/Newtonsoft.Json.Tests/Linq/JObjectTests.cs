@@ -27,18 +27,22 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+#if !(NET20 || NET35 || SILVERLIGHT || PORTABLE)
+using System.Numerics;
+#endif
+using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json.Tests.TestObjects;
 #if !NETFX_CORE
 using NUnit.Framework;
 #else
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestFixture = Microsoft.VisualStudio.TestTools.UnitTesting.TestClassAttribute;
-using Test = Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute;
+using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
+using TestFixture = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestClassAttribute;
+using Test = Microsoft.VisualStudio.TestPlatform.UnitTestFramework.TestMethodAttribute;
 #endif
 using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Collections;
-#if !PocketPC && !SILVERLIGHT && !NETFX_CORE
+#if !SILVERLIGHT && !NETFX_CORE
 using System.Web.UI;
 #endif
 #if NET20
@@ -46,12 +50,24 @@ using Newtonsoft.Json.Utilities.LinqBridge;
 #else
 using System.Linq;
 #endif
+using Newtonsoft.Json.Utilities;
 
 namespace Newtonsoft.Json.Tests.Linq
 {
   [TestFixture]
   public class JObjectTests : TestFixtureBase
   {
+    [Test]
+    public void WritePropertyWithNoValue()
+    {
+      var o = new JObject();
+      o.Add(new JProperty("novalue"));
+
+      Assert.AreEqual(@"{
+  ""novalue"": null
+}", o.ToString());
+    }
+
     [Test]
     public void Keys()
     {
@@ -404,7 +420,7 @@ Parameter name: arrayIndex",
       JArray a = (JArray)JsonConvert.DeserializeObject(json);
       JValue v = (JValue)a[0];
 
-      Assert.AreEqual(JsonConvert.ConvertJavaScriptTicksToDateTime(1207285200000), (DateTime)v);
+      Assert.AreEqual(DateTimeUtils.ConvertJavaScriptTicksToDateTime(1207285200000), (DateTime)v);
     }
 
     [Test]
@@ -671,7 +687,7 @@ Parameter name: arrayIndex",
       Assert.AreEqual(p4, l[1]);
     }
 
-#if !(SILVERLIGHT || NET20 || NETFX_CORE || PORTABLE)
+#if !(SILVERLIGHT || NET20 || NETFX_CORE || PORTABLE || PORTABLE40)
     [Test]
     public void PropertyChanging()
     {
@@ -1228,7 +1244,7 @@ Parameter name: arrayIndex",
       });
     }
 
-#if !(SILVERLIGHT || NETFX_CORE || PORTABLE)
+#if !(SILVERLIGHT || NETFX_CORE || PORTABLE || PORTABLE40)
     [Test]
     public void IBindingListSortDirection()
     {
@@ -1360,7 +1376,7 @@ Parameter name: arrayIndex",
     public void IBindingListAddNewWithEvent()
     {
       JObject o = new JObject();
-      o.AddingNew += (s, e) => e.NewObject = new JProperty("Property!");
+      o._addingNew += (s, e) => e.NewObject = new JProperty("Property!");
 
       IBindingList l = o;
       object newObject = l.AddNew();
@@ -1430,7 +1446,8 @@ Parameter name: arrayIndex",
       Assert.AreEqual(2, (int)o["Test1"]);
     }
 #endif
-#if SILVERLIGHT || !(NET20 || NET35 || PORTABLE)
+
+#if SILVERLIGHT || !(NET20 || NET35 || PORTABLE40)
     [Test]
     public void CollectionChanged()
     {
@@ -1441,7 +1458,7 @@ Parameter name: arrayIndex",
       NotifyCollectionChangedAction? changedType = null;
       int? index = null;
 
-      o.CollectionChanged += (s, a) =>
+      o._collectionChanged += (s, a) =>
       {
         changedType = a.Action;
         index = a.NewStartingIndex;
@@ -1560,7 +1577,7 @@ Parameter name: arrayIndex",
       Assert.AreEqual("Name2", value);
     }
 
-#if !(NETFX_CORE || PORTABLE)
+#if !(NETFX_CORE || PORTABLE || PORTABLE40)
     [Test]
     public void WriteObjectNullDBNullValue()
     {
@@ -1614,18 +1631,6 @@ Parameter name: arrayIndex",
 
         string name = (string)o.Property("responseData");
       });
-    }
-
-    [Test]
-    public void NumberTooBigForInt64()
-    {
-      ExceptionAssert.Throws<JsonReaderException>("JSON integer 307953220000517141511 is too large or small for an Int64. Path 'code', line 1, position 30.",
-        () =>
-        {
-          string json = @"{""code"": 307953220000517141511}";
-
-          JObject.Parse(json);
-        });
     }
 
     [Test]
@@ -1691,7 +1696,7 @@ Parameter name: arrayIndex",
       });
     }
 
-#if !(SILVERLIGHT || NETFX_CORE || PORTABLE)
+#if !(SILVERLIGHT || NETFX_CORE || PORTABLE || PORTABLE40)
     [Test]
     public void GetProperties()
     {
@@ -1731,6 +1736,7 @@ Parameter name: arrayIndex",
       Assert.AreEqual(false, prop4.ShouldSerializeValue(o));
     }
 #endif
+
     [Test]
     public void ParseEmptyObjectWithComment()
     {
@@ -1834,6 +1840,143 @@ Parameter name: arrayIndex",
       Assert.IsFalse(o1.DeepEquals(o5));
 
       Assert.IsFalse(o1.DeepEquals(null));
+    }
+
+    [Test]
+    public void ToListOnEmptyObject()
+    {
+      JObject o = JObject.Parse(@"{}");
+      IList<JToken> l1 = o.ToList<JToken>();
+      Assert.AreEqual(0, l1.Count);
+
+      IList<KeyValuePair<string, JToken>> l2 = o.ToList<KeyValuePair<string, JToken>>();
+      Assert.AreEqual(0, l2.Count);
+
+      o = JObject.Parse(@"{'hi':null}");
+      
+      l1 = o.ToList<JToken>();
+      Assert.AreEqual(1, l1.Count);
+
+      l2 = o.ToList<KeyValuePair<string, JToken>>();
+      Assert.AreEqual(1, l2.Count);
+    }
+
+    [Test]
+    public void EmptyObjectDeepEquals()
+    {
+      Assert.IsTrue(JToken.DeepEquals(new JObject(), new JObject()));
+
+      JObject a = new JObject();
+      JObject b = new JObject();
+
+      b.Add("hi", "bye");
+      b.Remove("hi");
+
+      Assert.IsTrue(JToken.DeepEquals(a, b));
+      Assert.IsTrue(JToken.DeepEquals(b, a));
+    }
+
+    [Test]
+    public void GetValueBlogExample()
+    {
+      JObject o = JObject.Parse(@"{
+        'name': 'Lower',
+        'NAME': 'Upper'
+      }");
+
+      string exactMatch = (string)o.GetValue("NAME", StringComparison.OrdinalIgnoreCase);
+      // Upper
+
+      string ignoreCase = (string)o.GetValue("Name", StringComparison.OrdinalIgnoreCase);
+      // Lower
+
+      Assert.AreEqual("Upper", exactMatch);
+      Assert.AreEqual("Lower", ignoreCase);
+    }
+
+    [Test]
+    public void GetValue()
+    {
+      JObject a = new JObject();
+      a["Name"] = "Name!";
+      a["name"] = "name!";
+      a["title"] = "Title!";
+
+      Assert.AreEqual(null, a.GetValue("NAME", StringComparison.Ordinal));
+      Assert.AreEqual(null, a.GetValue("NAME"));
+      Assert.AreEqual(null, a.GetValue("TITLE"));
+      Assert.AreEqual("Name!", (string)a.GetValue("NAME", StringComparison.OrdinalIgnoreCase));
+      Assert.AreEqual("name!", (string)a.GetValue("name", StringComparison.Ordinal));
+      Assert.AreEqual(null, a.GetValue(null, StringComparison.Ordinal));
+      Assert.AreEqual(null, a.GetValue(null));
+
+      JToken v;
+      Assert.IsFalse(a.TryGetValue("NAME", StringComparison.Ordinal, out v));
+      Assert.AreEqual(null, v);
+
+      Assert.IsFalse(a.TryGetValue("NAME", out v));
+      Assert.IsFalse(a.TryGetValue("TITLE", out v));
+
+      Assert.IsTrue(a.TryGetValue("NAME", StringComparison.OrdinalIgnoreCase, out v));
+      Assert.AreEqual("Name!", (string)v);
+
+      Assert.IsTrue(a.TryGetValue("name", StringComparison.Ordinal, out v));
+      Assert.AreEqual("name!", (string)v);
+
+      Assert.IsFalse(a.TryGetValue(null, StringComparison.Ordinal, out v));
+    }
+
+    public class FooJsonConverter : JsonConverter
+    {
+      public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+      {
+        var token = JToken.FromObject(value, new JsonSerializer
+          {
+            ContractResolver = new CamelCasePropertyNamesContractResolver()
+          });
+        if (token.Type == JTokenType.Object)
+        {
+          var o = (JObject)token;
+          o.AddFirst(new JProperty("foo", "bar"));
+          o.WriteTo(writer);
+        }
+        else
+          token.WriteTo(writer);
+      }
+
+      public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+      {
+        throw new NotSupportedException("This custom converter only supportes serialization and not deserialization.");
+      }
+
+      public override bool CanRead
+      {
+        get { return false; }
+      }
+
+      public override bool CanConvert(Type objectType)
+      {
+        return true;
+      }
+    }
+
+    [Test]
+    public void FromObjectInsideConverterWithCustomSerializer()
+    {
+      var p = new Person
+      {
+        Name = "Daniel Wertheim",
+      };
+
+      var settings = new JsonSerializerSettings
+      {
+        Converters = new List<JsonConverter> { new FooJsonConverter() },
+        ContractResolver = new CamelCasePropertyNamesContractResolver()
+      };
+
+      var json = JsonConvert.SerializeObject(p, settings);
+
+      Assert.AreEqual(@"{""foo"":""bar"",""name"":""Daniel Wertheim"",""birthDate"":""0001-01-01T00:00:00"",""lastModified"":""0001-01-01T00:00:00""}", json);
     }
   }
 }

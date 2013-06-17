@@ -29,25 +29,45 @@ using System.Text;
 
 namespace Raven.Imports.Newtonsoft.Json.Utilities
 {
-  internal class MathUtils
+  internal static class MathUtils
   {
-    public static int IntLength(int i)
+    public static int IntLength(ulong i)
     {
-      if (i < 0)
-        throw new ArgumentOutOfRangeException();
+      if (i < 10000000000)
+      {
+        if (i < 10) return 1;
+        if (i < 100) return 2;
+        if (i < 1000) return 3;
+        if (i < 10000) return 4;
+        if (i < 100000) return 5;
+        if (i < 1000000) return 6;
+        if (i < 10000000) return 7;
+        if (i < 100000000) return 8;
+        if (i < 1000000000) return 9;
 
-      if (i == 0)
-        return 1;
+        return 10;
+      }
+      else
+      {
+        if (i < 100000000000) return 11;
+        if (i < 1000000000000) return 12;
+        if (i < 10000000000000) return 13;
+        if (i < 100000000000000) return 14;
+        if (i < 1000000000000000) return 15;
+        if (i < 10000000000000000) return 16;
+        if (i < 100000000000000000) return 17;
+        if (i < 1000000000000000000) return 18;
+        if (i < 10000000000000000000) return 19;
 
-      return (int)Math.Floor(Math.Log10(i)) + 1;
+        return 20;
+      }
     }
 
     public static char IntToHex(int n)
     {
       if (n <= 9)
-      {
         return (char)(n + 48);
-      }
+
       return (char)((n - 10) + 97);
     }
 
@@ -83,8 +103,15 @@ namespace Raven.Imports.Newtonsoft.Json.Utilities
 
     public static bool ApproxEquals(double d1, double d2)
     {
-      // are values equal to within 6 (or so) digits of precision?
-      return Math.Abs(d1 - d2) < (Math.Abs(d1) * 1e-6);
+      const double epsilon = 2.2204460492503131E-16;
+
+      if (d1 == d2)
+        return true;
+
+      double tolerance = ((Math.Abs(d1) + Math.Abs(d2)) + 10.0) * epsilon;
+      double difference = d1 - d2;
+
+      return (-tolerance < difference && tolerance > difference);
     }
   }
 }

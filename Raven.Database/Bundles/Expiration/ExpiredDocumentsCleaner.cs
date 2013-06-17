@@ -65,13 +65,13 @@ namespace Raven.Bundles.Expiration
 			executing = true;
 			try
 			{
-				DateTime currentTime = SystemTime.UtcNow;
-				string nowAsStr = currentTime.ToString(Default.DateTimeFormatsToWrite);
+				var currentTime = SystemTime.UtcNow;
+				var nowAsStr = currentTime.ToString(Default.DateTimeFormatsToWrite);
 				logger.Debug("Trying to find expired documents to delete");
 				var query = "Expiry:[* TO " + nowAsStr + "]";
 
 				var list = new List<string>();
-				int start = 0;
+				var start = 0;
 				while (true)
 				{
 					const int pageSize = 1024;
@@ -117,7 +117,6 @@ namespace Raven.Bundles.Expiration
 			{
 				executing = false;
 			}
-
 		}
 
 		/// <summary>
