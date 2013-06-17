@@ -31,7 +31,7 @@ namespace Raven.Database.Commercial
 		private readonly ILog logger = LogManager.GetCurrentClassLogger();
 		private Timer timer;
 
-		private static readonly Dictionary<string,string> alwaysOnAttributes = new Dictionary<string, string>
+		private static readonly Dictionary<string,string> AlwaysOnAttributes = new Dictionary<string, string>
 		{
 			{"periodicBackup", "false"},
 			{"encryption", "false"},
@@ -52,7 +52,7 @@ namespace Raven.Database.Commercial
 				Error = false,
 				Message = "No license file was found.\r\n" +
 				          "The AGPL license restrictions apply, only Open Source / Development work is permitted.",
-				Attributes = new Dictionary<string, string>(alwaysOnAttributes, StringComparer.OrdinalIgnoreCase)
+				Attributes = new Dictionary<string, string>(AlwaysOnAttributes, StringComparer.OrdinalIgnoreCase)
 			};
 		}
 
@@ -95,7 +95,7 @@ namespace Raven.Database.Commercial
 					}
 				});
 
-				var attributes = new Dictionary<string, string>(alwaysOnAttributes, StringComparer.OrdinalIgnoreCase);
+				var attributes = new Dictionary<string, string>(AlwaysOnAttributes, StringComparer.OrdinalIgnoreCase);
 				foreach (var licenseAttribute in licenseValidator.LicenseAttributes)
 				{
 					attributes[licenseAttribute.Key] = licenseAttribute.Value;
@@ -134,7 +134,7 @@ namespace Raven.Database.Commercial
 					Status = "AGPL - Open Source",
 					Error = true,
 					Message = "Could not validate license: " + licensePath + ", " + licenseText + Environment.NewLine + e,
-					Attributes = new Dictionary<string, string>(alwaysOnAttributes, StringComparer.OrdinalIgnoreCase)
+					Attributes = new Dictionary<string, string>(AlwaysOnAttributes, StringComparer.OrdinalIgnoreCase)
 				};
 			}
 		}

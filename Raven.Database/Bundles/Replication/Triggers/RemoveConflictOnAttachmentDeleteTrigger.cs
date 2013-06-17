@@ -7,7 +7,6 @@ using System.ComponentModel.Composition;
 using Raven.Abstractions.Data;
 using Raven.Database.Plugins;
 using Raven.Json.Linq;
-using System.Linq;
 using Raven.Abstractions.Extensions;
 
 namespace Raven.Bundles.Replication.Triggers

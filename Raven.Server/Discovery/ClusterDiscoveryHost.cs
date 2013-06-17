@@ -24,13 +24,13 @@ namespace Raven.Server.Discovery
 			socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 			socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
 			socket.Bind(new IPEndPoint(IPAddress.Any, 12392));
-			NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
-			foreach (NetworkInterface adapter in adapters.Where(card => card.OperationalStatus == OperationalStatus.Up))
+			var adapters = NetworkInterface.GetAllNetworkInterfaces();
+			foreach (var adapter in adapters.Where(card => card.OperationalStatus == OperationalStatus.Up))
 			{
-				IPInterfaceProperties properties = adapter.GetIPProperties();
-				foreach (var ipaddress in properties.UnicastAddresses.Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork))
+				var properties = adapter.GetIPProperties();
+				foreach (var ipAddress in properties.UnicastAddresses.Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork))
 				{
-					socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, (object)new MulticastOption(IPAddress.Parse("224.0.0.1"), ipaddress.Address));
+					socket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(IPAddress.Parse("224.0.0.1"), ipAddress.Address));
 				}
 			}
 

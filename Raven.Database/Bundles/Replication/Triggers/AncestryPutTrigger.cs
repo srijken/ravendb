@@ -34,12 +34,13 @@ namespace Raven.Bundles.Replication.Triggers
 			if (key.StartsWith("Raven/", StringComparison.OrdinalIgnoreCase) && // we don't deal with system documents
 				key.StartsWith("Raven/Hilo/", StringComparison.OrdinalIgnoreCase) == false) // except for hilos
 				return;
+
 			using (Database.DisableAllTriggersForCurrentThread())
 			{
 				var documentMetadata = GetDocumentMetadata(key);
 				if (documentMetadata != null)
 				{
-					RavenJArray history = new RavenJArray(ReplicationData.GetHistory(documentMetadata));
+					var history = new RavenJArray(ReplicationData.GetHistory(documentMetadata));
 					metadata[Constants.RavenReplicationHistory] = history;
 
 					if (documentMetadata.ContainsKey(Constants.RavenReplicationVersion) && 

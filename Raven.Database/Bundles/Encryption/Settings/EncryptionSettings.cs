@@ -63,7 +63,6 @@ namespace Raven.Bundles.Encryption.Settings
 			}
 		}
 
-
 		public Type SymmetricAlgorithmType
 		{
 			get { return algorithmType; }

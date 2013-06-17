@@ -7,7 +7,6 @@ using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Raven.Abstractions.Data;
-using Raven.Abstractions.Exceptions;
 using Raven.Bundles.Versioning.Data;
 using Raven.Database.Plugins;
 using Raven.Json.Linq;
@@ -44,10 +43,9 @@ namespace Raven.Bundles.Versioning.Triggers
 			{
 				RemoveOldRevisions(key, revision, versioningConfiguration, transactionInformation);
 			}
+
 			metadata.__ExternalState["Next-Revision"] = revision;
-
 			metadata.__ExternalState["Parent-Revision"] = metadata.Value<string>(VersioningUtil.RavenDocumentRevision);
-
 			metadata[VersioningUtil.RavenDocumentRevisionStatus] = RavenJToken.FromObject("Current");
 			metadata[VersioningUtil.RavenDocumentRevision] = RavenJToken.FromObject(revision);
 		}
@@ -118,8 +116,7 @@ namespace Raven.Bundles.Versioning.Triggers
 		private RavenJObject GetLatestRevisionsDoc(string key)
 		{
 			const int pageSize = 100;
-			int start = 0;
-
+			var start = 0;
 			RavenJObject lastRevisionDoc = null;
 
 			while (true)
@@ -150,14 +147,12 @@ namespace Raven.Bundles.Versioning.Triggers
 				return false;
 
 			versioningConfiguration = Database.GetDocumentVersioningConfiguration(metadata);
-			if (versioningConfiguration == null || versioningConfiguration.Exclude)
-				return false;
-			return true;
+			return versioningConfiguration != null && !versioningConfiguration.Exclude;
 		}
 
 		private void RemoveOldRevisions(string key, int revision, VersioningConfiguration versioningConfiguration, TransactionInformation transactionInformation)
 		{
-			int latestValidRevision = revision - versioningConfiguration.MaxRevisions;
+			var latestValidRevision = revision - versioningConfiguration.MaxRevisions;
 			if (latestValidRevision <= 0)
 				return;
 

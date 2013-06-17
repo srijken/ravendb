@@ -3,7 +3,6 @@ using Raven.Abstractions;
 using Raven.Abstractions.Data;
 using Raven.Database;
 using Raven.Database.Plugins;
-using Raven.Abstractions.Extensions;
 using Raven.Json.Linq;
 
 namespace Raven.Bundles.Quotas.Documents
@@ -34,14 +33,10 @@ namespace Raven.Bundles.Quotas.Documents
 			var softLimitQuotaAsString = database.Configuration.Settings[Constants.DocsSoftLimit];
 
 			if (long.TryParse(hardLimitQuotaAsString, out hardLimit) == false)
-			{
 				hardLimit = long.MaxValue;
-			}
 
 			if (long.TryParse(softLimitQuotaAsString, out softLimit) == false)
-			{
 				softLimit = long.MaxValue;
-			}
 		}
 
 		public VetoResult AllowPut()

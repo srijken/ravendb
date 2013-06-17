@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Raven.Bundles.Encryption.Streams
 {	/// <summary>
@@ -16,11 +12,11 @@ namespace Raven.Bundles.Encryption.Streams
 			if (bytes == null)
 				throw new ArgumentNullException("bytes");
 
-			int size = Marshal.SizeOf(typeof(T));
+			var size = Marshal.SizeOf(typeof(T));
 			if (size != bytes.Length)
 				throw new ArgumentException("To convert a byte array to a " + typeof(T).FullName + ", the array must be of length " + size, "bytes");
 
-			IntPtr ptr = Marshal.AllocHGlobal(size);
+			var ptr = Marshal.AllocHGlobal(size);
 			T data;
 			try
 			{
@@ -33,15 +29,14 @@ namespace Raven.Bundles.Encryption.Streams
 			}
 
 			return data;
-
 		}
 
 		public static byte[] ConvertStructToBits<T>(T data) where T : struct
 		{
-			int size = Marshal.SizeOf(data);
-			byte[] arr = new byte[size];
+			var size = Marshal.SizeOf(data);
+			var arr = new byte[size];
 
-			IntPtr ptr = Marshal.AllocHGlobal(size);
+			var ptr = Marshal.AllocHGlobal(size);
 			try
 			{
 				Marshal.StructureToPtr(data, ptr, true);
@@ -51,6 +46,7 @@ namespace Raven.Bundles.Encryption.Streams
 			{
 				Marshal.FreeHGlobal(ptr);
 			}
+
 			return arr;
 		}
 	}

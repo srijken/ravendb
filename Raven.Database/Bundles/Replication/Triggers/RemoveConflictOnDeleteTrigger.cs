@@ -8,7 +8,6 @@ using System.ComponentModel.Composition;
 using Raven.Abstractions.Data;
 using Raven.Database.Plugins;
 using Raven.Json.Linq;
-using System.Linq;
 
 namespace Raven.Bundles.Replication.Triggers
 {

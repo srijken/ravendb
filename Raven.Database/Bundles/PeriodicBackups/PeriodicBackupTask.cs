@@ -13,13 +13,10 @@ using Raven.Abstractions.Data;
 using Raven.Abstractions.Extensions;
 using Raven.Abstractions.Logging;
 using Raven.Abstractions.Smuggler;
-using Raven.Abstractions.Util;
 using Raven.Database.Extensions;
 using Raven.Database.Plugins;
 using Raven.Database.Server;
 using Raven.Database.Smuggler;
-using Raven.Database.Tasks;
-using Raven.Imports.Newtonsoft.Json;
 using Raven.Json.Linq;
 using Task = System.Threading.Tasks.Task;
 
@@ -258,20 +255,20 @@ namespace Raven.Database.Bundles.PeriodicBackups
 
 	    private void UploadToAzure(string backupPath, PeriodicBackupSetup localBackupConfigs)
 	    {
-	        StorageCredentials storageCredentials = new StorageCredentials(azureStorageAccount, azureStorageKey);
-	        CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-	        CloudBlobClient blobClient = new CloudBlobClient(storageAccount.BlobEndpoint, storageCredentials);
-	        CloudBlobContainer backupContainer = blobClient.GetContainerReference(localBackupConfigs.AzureStorageContainer);
+	        var storageCredentials = new StorageCredentials(azureStorageAccount, azureStorageKey);
+	        var storageAccount = new CloudStorageAccount(storageCredentials, true);
+	        var blobClient = new CloudBlobClient(storageAccount.BlobEndpoint, storageCredentials);
+	        var backupContainer = blobClient.GetContainerReference(localBackupConfigs.AzureStorageContainer);
 	        backupContainer.CreateIfNotExists();
 	        using (var fileStream = File.OpenRead(backupPath))
 	        {
 	            var key = Path.GetFileName(backupPath);
-	            CloudBlockBlob backupBlob = backupContainer.GetBlockBlobReference(key);
+	            var backupBlob = backupContainer.GetBlockBlobReference(key);
 	            backupBlob.Metadata.Add("Description", this.GetArchiveDescription());
 	            backupBlob.UploadFromStream(fileStream);
 	            backupBlob.SetMetadata();
 
-	            this.logger.Info(string.Format(
+	            logger.Info(string.Format(
 	                "Successfully uploaded backup {0} to Azure container {1}, with key {2}",
 	                Path.GetFileName(backupPath),
 	                localBackupConfigs.AzureStorageContainer,

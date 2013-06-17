@@ -37,7 +37,7 @@ namespace Raven.Database.Bundles.SqlReplication
 	public class SqlReplicationTask : IStartupTask, IDisposable
 	{
 		private const string RavenSqlreplicationStatus = "Raven/SqlReplication/Status";
-		private readonly static ILog log = LogManager.GetCurrentClassLogger();
+		private readonly static ILog Log = LogManager.GetCurrentClassLogger();
 
 		public event Action<int> AfterReplicationCompleted = delegate { };
 
@@ -89,7 +89,7 @@ namespace Raven.Database.Bundles.SqlReplication
 					}
 					catch (Exception e)
 					{
-						log.ErrorException("Fatal failure when replicating to SQL. All SQL Replication activity STOPPED", e);
+						Log.ErrorException("Fatal failure when replicating to SQL. All SQL Replication activity STOPPED", e);
 					}
 				}
 			}, TaskCreationOptions.LongRunning);
@@ -100,7 +100,7 @@ namespace Raven.Database.Bundles.SqlReplication
 		{
 			Database.TransactionalStorage.Batch(accessor =>
 			{
-				bool hasChanges = false;
+				var hasChanges = false;
 				foreach (var config in replicationConfigs)
 				{
 					if (string.Equals(config.RavenEntityName, metadata.Value<string>(Constants.RavenEntityName), StringComparison.InvariantCultureIgnoreCase) == false)
@@ -124,7 +124,7 @@ namespace Raven.Database.Bundles.SqlReplication
 
 		private void BackgroundSqlReplication()
 		{
-			int workCounter = 0;
+			var workCounter = 0;
 			while (Database.WorkContext.DoWork)
 			{
 				var config = GetConfiguredReplicationDestinations();
@@ -221,7 +221,7 @@ namespace Raven.Database.Bundles.SqlReplication
 							latestEtag = HandleDeletesAndChangesMerging(deletedDocs, docsToReplicate);
 
 							if (ReplicateDeletionsToDestination(replicationConfig, deletedDocs) &&
-								ReplicateChangesToDesintation(replicationConfig, docsToReplicate))
+								ReplicateChangesToDestination(replicationConfig, docsToReplicate))
 							{
 								if (deletedDocs.Count > 0)
 								{
@@ -233,7 +233,7 @@ namespace Raven.Database.Bundles.SqlReplication
 						}
 						catch (Exception e)
 						{
-							log.WarnException("Error while replication to SQL destination: " + replicationConfig.Name, e);
+							Log.WarnException("Error while replication to SQL destination: " + replicationConfig.Name, e);
 							Database.AddAlert(new Alert
 							{
 								AlertLevel = AlertLevel.Error,
@@ -245,8 +245,10 @@ namespace Raven.Database.Bundles.SqlReplication
 							});
 						}
 					});
+
 					if (successes.Count == 0)
 						continue;
+
 					foreach (var cfg in successes)
 					{
 						var destEtag = localReplicationStatus.LastReplicatedEtags.FirstOrDefault(x => string.Equals(x.Name, cfg.Name, StringComparison.InvariantCultureIgnoreCase));
@@ -278,7 +280,7 @@ namespace Raven.Database.Bundles.SqlReplication
 
 		private void SaveNewReplicationStatus(SqlReplicationStatus localReplicationStatus, Etag latestEtag)
 		{
-			int retries = 5;
+			var retries = 5;
 			while (retries > 0)
 			{
 				retries--;
@@ -301,7 +303,7 @@ namespace Raven.Database.Bundles.SqlReplication
 		{
 			// This code is O(N^2), I don't like it, but we don't have a lot of deletes, and in order for it to be really bad
 			// we need a lot of deletes WITH a lot of changes at the same time
-			for (int index = 0; index < deletedDocs.Count; index++)
+			for (var index = 0; index < deletedDocs.Count; index++)
 			{
 				var deletedDoc = deletedDocs[index];
 				var change = docsToReplicate.FindIndex(
@@ -318,7 +320,7 @@ namespace Raven.Database.Bundles.SqlReplication
 				}
 				else
 				{
-					// the delete came BEFORE the doc, so we can remove the delte and just replicate the change
+					// the delete came BEFORE the doc, so we can remove the delta and just replicate the change
 					deletedDocs.RemoveAt(index);
 					index--;
 				}
@@ -365,7 +367,7 @@ namespace Raven.Database.Bundles.SqlReplication
 			return "SqlReplication/Deleteions/" + replicationConfig.Name;
 		}
 
-		private Etag GetLeastReplicatedEtag(List<SqlReplicationConfig> config, SqlReplicationStatus localReplicationStatus)
+		private Etag GetLeastReplicatedEtag(IEnumerable<SqlReplicationConfig> config, SqlReplicationStatus localReplicationStatus)
 		{
 			var synchronizationEtag = etagSynchronizer.GetSynchronizationEtag();
 			Etag leastReplicatedEtag = null;
@@ -385,7 +387,7 @@ namespace Raven.Database.Bundles.SqlReplication
 			return calculateSynchronizationEtag;
 		}
 
-		private bool ReplicateChangesToDesintation(SqlReplicationConfig cfg, IEnumerable<JsonDocument> docs)
+		private bool ReplicateChangesToDestination(SqlReplicationConfig cfg, IEnumerable<JsonDocument> docs)
 		{
 			var scriptResult = ApplyConversionScript(cfg, docs);
 			if (scriptResult.Data.Count == 0)
@@ -405,7 +407,7 @@ namespace Raven.Database.Bundles.SqlReplication
 			}
 			catch (Exception e)
 			{
-				log.WarnException("Failure to replicate changes to relational database for: " + cfg.Name, e);
+				Log.WarnException("Failure to replicate changes to relational database for: " + cfg.Name, e);
 				SqlReplicationStatistics replicationStatistics;
 				DateTime newTime;
 				if (statistics.TryGetValue(cfg.Name, out replicationStatistics) == false)
@@ -421,7 +423,6 @@ namespace Raven.Database.Bundles.SqlReplication
 				return false;
 			}
 		}
-
 
 		private ConversionScriptResult ApplyConversionScript(SqlReplicationConfig cfg, IEnumerable<JsonDocument> docs)
 		{
@@ -446,9 +447,9 @@ namespace Raven.Database.Bundles.SqlReplication
 						Script = cfg.Script
 					}, jsonDocument.SerializedSizeOnDisk);
 
-					if (log.IsDebugEnabled && patcher.Debug.Count > 0)
+					if (Log.IsDebugEnabled && patcher.Debug.Count > 0)
 					{
-						log.Debug("Debug output for doc: {0} for script {1}:\r\n.{2}", jsonDocument.Key, cfg.Name, string.Join("\r\n", patcher.Debug));
+						Log.Debug("Debug output for doc: {0} for script {1}:\r\n.{2}", jsonDocument.Key, cfg.Name, string.Join("\r\n", patcher.Debug));
 
 						patcher.Debug.Clear();
 					}
@@ -459,16 +460,17 @@ namespace Raven.Database.Bundles.SqlReplication
 				{
 					replicationStats.MarkScriptAsInvalid(Database, cfg.Script);
 
-					log.WarnException("Could parse SQL Replication script for " + cfg.Name, e);
+					Log.WarnException("Could parse SQL Replication script for " + cfg.Name, e);
 
 					return result;
 				}
 				catch (Exception e)
 				{
 					replicationStats.RecordScriptError(Database);
-					log.WarnException("Could not process SQL Replication script for " + cfg.Name + ", skipping document: " + jsonDocument.Key, e);
+					Log.WarnException("Could not process SQL Replication script for " + cfg.Name + ", skipping document: " + jsonDocument.Key, e);
 				}
 			}
+
 			return result;
 		}
 
@@ -499,7 +501,7 @@ namespace Raven.Database.Bundles.SqlReplication
 					var cfg = document.DataAsJson.JsonDeserialization<SqlReplicationConfig>();
 					if (string.IsNullOrWhiteSpace(cfg.Name))
 					{
-						log.Warn("Could not find name for sql replication document {0}, ignoring", document.Key);
+						Log.Warn("Could not find name for sql replication document {0}, ignoring", document.Key);
 						continue;
 					}
 					if (string.IsNullOrWhiteSpace(cfg.ConnectionStringName) == false)
@@ -507,7 +509,7 @@ namespace Raven.Database.Bundles.SqlReplication
 						var connectionString = ConfigurationManager.ConnectionStrings[cfg.ConnectionStringName];
 						if (connectionString == null)
 						{
-							log.Warn("Could not find connection string named '{0}' for sql replication config: {1}, ignoring sql replication setting.",
+							Log.Warn("Could not find connection string named '{0}' for sql replication config: {1}, ignoring sql replication setting.",
 								cfg.ConnectionStringName,
 								document.Key);
 							continue;
@@ -519,12 +521,13 @@ namespace Raven.Database.Bundles.SqlReplication
 						var setting = Database.Configuration.Settings[cfg.ConnectionStringSettingName];
 						if (string.IsNullOrWhiteSpace(setting))
 						{
-							log.Warn("Could not find setting named '{0}' for sql replication config: {1}, ignoring sql replication setting.",
+							Log.Warn("Could not find setting named '{0}' for sql replication config: {1}, ignoring sql replication setting.",
 								cfg.ConnectionStringName,
 								document.Key);
 							continue;
 						}
 					}
+
 					sqlReplicationConfigs.Add(cfg);
 				}
 			});

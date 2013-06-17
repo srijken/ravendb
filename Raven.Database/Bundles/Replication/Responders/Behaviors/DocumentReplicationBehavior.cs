@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Raven.Abstractions.Data;
 using Raven.Bundles.Replication.Plugins;
-using Raven.Database.Impl;
-using Raven.Database.Storage;
 using Raven.Json.Linq;
 
 namespace Raven.Bundles.Replication.Responders
@@ -54,7 +51,7 @@ namespace Raven.Bundles.Replication.Responders
 				                                              {"@Http-Status-Description", "Conflict"}
 			                                              });
 
-			return new CreatedConflict()
+			return new CreatedConflict
 			{
 				Etag = addResult.Etag,
 				ConflictedIds = conflictsArray.Select(x => x.Value<string>()).ToArray()
@@ -70,7 +67,7 @@ namespace Raven.Bundles.Replication.Responders
 			ravenJArray.Add(RavenJToken.FromObject(newConflictId));
 			var addResult = Actions.Documents.AddDocument(id, existingItem.Etag, existingItem.DataAsJson, existingItem.Metadata);
 
-			return new CreatedConflict()
+			return new CreatedConflict
 			{
 				Etag = addResult.Etag,
 				ConflictedIds = ravenJArray.Select(x => x.Value<string>()).ToArray()
@@ -102,11 +99,11 @@ namespace Raven.Bundles.Replication.Responders
 				};
 				return listItem.Data;
 			}
+
 			existingEtag = Etag.Empty;
 			existingItem = null;
 			deleted = false;
 			return null;
-
 		}
 
 		protected override bool TryResolveConflict(string id, RavenJObject metadata, RavenJObject document, JsonDocument existing)

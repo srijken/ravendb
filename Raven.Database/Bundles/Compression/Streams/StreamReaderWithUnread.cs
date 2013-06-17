@@ -2,19 +2,17 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Raven.Bundles.Compression.Streams
 {
 	internal class StreamReaderWithUnread
 	{
-		public readonly Stream stream;
+		public readonly Stream Stream;
 		private readonly Stack<Buffer> unreadBuffer = new Stack<Buffer>();
 
 		public StreamReaderWithUnread(Stream stream)
 		{
-			this.stream = stream;
+			Stream = stream;
 		}
 
 		public int Read(byte[] buffer, int start, int length)
@@ -28,14 +26,12 @@ namespace Raven.Bundles.Compression.Streams
 					unreadBuffer.Push(next.Skip(length));
 					return length;
 				}
-				else
-				{
-					Array.Copy(next.Data, next.Start, buffer, start, next.Length);
-					return next.Length;
-				}
+				
+				Array.Copy(next.Data, next.Start, buffer, start, next.Length);
+				return next.Length;
 			}
 
-			return stream.Read(buffer, start, length);
+			return Stream.Read(buffer, start, length);
 		}
 
 		public void Unread(IEnumerable<byte> data)
@@ -45,7 +41,7 @@ namespace Raven.Bundles.Compression.Streams
 
 		public void Close()
 		{
-			stream.Close();
+			Stream.Close();
 		}
 
 		private struct Buffer
@@ -56,16 +52,16 @@ namespace Raven.Bundles.Compression.Streams
 
 			public Buffer(IEnumerable<byte> data)
 			{
-				this.Data = data.ToArray();
-				this.Start = 0;
-				this.Length = this.Data.Length;
+				Data = data.ToArray();
+				Start = 0;
+				Length = Data.Length;
 			}
 
 			public Buffer(byte[] data, int start, int length)
 			{
-				this.Data = data;
-				this.Start = start;
-				this.Length = length;
+				Data = data;
+				Start = start;
+				Length = length;
 			}
 
 			public Buffer Skip(int count)

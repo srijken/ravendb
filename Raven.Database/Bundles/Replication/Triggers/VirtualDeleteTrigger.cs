@@ -9,7 +9,6 @@ using Raven.Abstractions.Data;
 using Raven.Abstractions.Extensions;
 using Raven.Bundles.Replication.Impl;
 using Raven.Database.Bundles.Replication.Impl;
-using Raven.Database.Impl;
 using Raven.Database.Plugins;
 using Raven.Json.Linq;
 
@@ -86,7 +85,7 @@ namespace Raven.Bundles.Replication.Triggers
 				if (conflictSource != currentSource)
 					continue;
 
-				this.deletedHistory.Value = new RavenJArray
+				deletedHistory.Value = new RavenJArray
 				{
 					new RavenJObject
 					{

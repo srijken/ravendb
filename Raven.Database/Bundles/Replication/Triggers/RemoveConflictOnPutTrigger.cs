@@ -29,7 +29,7 @@ namespace Raven.Bundles.Replication.Triggers
 				if (oldVersion.Metadata[Constants.RavenReplicationConflict] == null)
 					return;
 
-				RavenJArray history = new RavenJArray(ReplicationData.GetHistory(metadata));
+				var history = new RavenJArray(ReplicationData.GetHistory(metadata));
 				metadata[Constants.RavenReplicationHistory] = history;
 
 				var ravenJTokenEqualityComparer = new RavenJTokenEqualityComparer();
@@ -38,6 +38,7 @@ namespace Raven.Bundles.Replication.Triggers
 				var conflicts = oldVersion.DataAsJson.Value<RavenJArray>("Conflicts");
 				if(conflicts == null)
 					return;
+
 				foreach (var prop in conflicts)
 				{
 					RavenJObject deletedMetadata;

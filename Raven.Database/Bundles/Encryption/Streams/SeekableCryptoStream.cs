@@ -44,8 +44,8 @@ namespace Raven.Bundles.Encryption.Streams
 
 			isReadonly = !stream.CanWrite;
 
-			this.underlyingStream = new BlockReaderWriter(encryptionSettings, key, stream, Constants.DefaultIndexFileBlockSize);
-			this.currentBlockSize = underlyingStream.Header.DecryptedBlockSize;
+			underlyingStream = new BlockReaderWriter(encryptionSettings, key, stream, Constants.DefaultIndexFileBlockSize);
+			currentBlockSize = underlyingStream.Header.DecryptedBlockSize;
 		}
 
 		public override bool CanRead
@@ -83,16 +83,16 @@ namespace Raven.Bundles.Encryption.Streams
 				if (Position >= underlyingStream.Footer.TotalLength)
 					return 0;
 
-				long startingBlock = underlyingStream.Header.GetBlockNumberFromLogicalPosition(Position);
-				long blockOffset = underlyingStream.Header.GetBlockOffsetFromLogicalPosition(Position);
+				var startingBlock = underlyingStream.Header.GetBlockNumberFromLogicalPosition(Position);
+				var blockOffset = underlyingStream.Header.GetBlockOffsetFromLogicalPosition(Position);
 
 				if (currentReadingBlock == null || currentReadingBlock.BlockNumber != startingBlock)
 				{
 					currentReadingBlock = underlyingStream.ReadBlock(startingBlock);
 				}
 
-				int blockRead = (int)Math.Min(currentReadingBlock.TotalStreamLength - Position, currentBlockSize - blockOffset);
-				int actualRead = Math.Min(count, blockRead);
+				var blockRead = (int)Math.Min(currentReadingBlock.TotalStreamLength - Position, currentBlockSize - blockOffset);
+				var actualRead = Math.Min(count, blockRead);
 				Array.Copy(currentReadingBlock.Data, blockOffset, buffer, bufferOffset, actualRead);
 				// We use the fact that a stream doesn't have to read all data in one go to avoid a loop here.
 
@@ -120,10 +120,10 @@ namespace Raven.Bundles.Encryption.Streams
 			{
 				while (true)
 				{
-					long startingBlock = underlyingStream.Header.GetBlockNumberFromLogicalPosition(Position);
-					long endingBlock = underlyingStream.Header.GetBlockNumberFromLogicalPosition(Position + count - 1);
+					var startingBlock = underlyingStream.Header.GetBlockNumberFromLogicalPosition(Position);
+					var endingBlock = underlyingStream.Header.GetBlockNumberFromLogicalPosition(Position + count - 1);
 
-					long blockOffset = underlyingStream.Header.GetBlockOffsetFromLogicalPosition(Position);
+					var blockOffset = underlyingStream.Header.GetBlockOffsetFromLogicalPosition(Position);
 
 					if (currentWritingBlock == null || currentWritingBlock.BlockNumber != startingBlock)
 						// If we're writing into a different block than the one that's currently in memory

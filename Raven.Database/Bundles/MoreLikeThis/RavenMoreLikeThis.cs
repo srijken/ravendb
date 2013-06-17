@@ -7,12 +7,12 @@ namespace Raven.Database.Bundles.MoreLikeThis
 {
 	class RavenMoreLikeThis : Lucene.Net.Search.Similar.MoreLikeThis
 	{
-		private readonly IndexReader _ir;
+		private readonly IndexReader ir;
 
 		public RavenMoreLikeThis(IndexReader ir)
 			: base(ir)
 		{
-			_ir = ir;
+			this.ir = ir;
 		}
 
 		protected override PriorityQueue<object[]> RetrieveTerms(int docNum)
@@ -23,12 +23,12 @@ namespace Raven.Database.Bundles.MoreLikeThis
 			
 			foreach (var fieldName in fieldNames)
 			{
-				var vector = _ir.GetTermFreqVector(docNum, fieldName);
+				var vector = ir.GetTermFreqVector(docNum, fieldName);
 
 				// field does not store term vector info
 				if (vector == null)
 				{
-					var d = _ir.Document(docNum);
+					var d = ir.Document(docNum);
 					var text = d.GetValues(fieldName);
 					if (text != null)
 					{

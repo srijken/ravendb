@@ -1,19 +1,15 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Raven.Abstractions.Data;
 using Raven.Abstractions.Logging;
 using Raven.Database;
 using Raven.Database.Storage;
-using Raven.Imports.Newtonsoft.Json.Linq;
 using Raven.Json.Linq;
+using Raven.Database.Bundles.Replication.Impl;
 
 namespace Raven.Bundles.Replication.Responders
 {
-	using Raven.Database.Bundles.Replication.Impl;
-
 	public abstract class SingleItemReplicationBehavior<TInternal, TExternal>
 	{
 		protected class CreatedConflict
@@ -23,7 +19,6 @@ namespace Raven.Bundles.Replication.Responders
 		}
 
 		private readonly ILog log = LogManager.GetCurrentClassLogger();
-
 		public DocumentDatabase Database { get; set; }
 		public IStorageActionsAccessor Actions { get; set; }
 		public string Src { get; set; }
@@ -35,6 +30,7 @@ namespace Raven.Bundles.Replication.Responders
 				ReplicateDelete(id, metadata, incoming);
 				return;
 			}
+
 			TInternal existingItem;
 			Etag existingEtag;
 			bool deleted;
@@ -45,7 +41,6 @@ namespace Raven.Bundles.Replication.Responders
 				AddWithoutConflict(id, null, metadata, incoming);
 				return;
 			}
-
 
 			// we just got the same version from the same source - request playback again?
 			// at any rate, not an error, moving on
@@ -215,7 +210,6 @@ namespace Raven.Bundles.Replication.Responders
 
 		protected abstract bool TryResolveConflict(string id, RavenJObject metadata, TExternal document,
 												  TInternal existing);
-
 
 		private static string HashReplicationIdentifier(RavenJObject metadata)
 		{

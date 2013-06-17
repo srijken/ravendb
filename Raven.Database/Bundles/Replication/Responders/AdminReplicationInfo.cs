@@ -3,20 +3,15 @@
 //      Copyright (c) Hibernating Rhinos LTD. All rights reserved.
 //  </copyright>
 // -----------------------------------------------------------------------
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Raven.Abstractions.Connection;
 using Raven.Abstractions.Data;
-using Raven.Abstractions.Extensions;
 using Raven.Abstractions.Replication;
 using Raven.Database.Extensions;
 using Raven.Database.Server.Abstractions;
-using Raven.Json.Linq;
 
 namespace Raven.Database.Server.Responders.Admin
 {
@@ -53,7 +48,6 @@ namespace Raven.Database.Server.Responders.Admin
 			}
 
 			var statuses = CheckDestinations(replicationDocument);
-
 			context.WriteJson(statuses);
 		}
 
@@ -66,9 +60,7 @@ namespace Raven.Database.Server.Responders.Admin
 				var url = replicationDestination.Url;
 
 				if (!url.ToLower().Contains("/databases/"))
-				{
 					url += "/databases/" + replicationDestination.Database;
-				}
 
 				var result = new ReplicationInfoStatus
 				{
@@ -84,12 +76,14 @@ namespace Raven.Database.Server.Responders.Admin
 			        ApiKey = replicationDestination.ApiKey, 
                     DefaultDatabase = replicationDestination.Database,
 			    };
+
                 if (string.IsNullOrEmpty(replicationDestination.Username) == false)
                 {
                     ravenConnectionStringOptions.Credentials = new NetworkCredential(replicationDestination.Username,
                                                                                      replicationDestination.Password,
                                                                                      replicationDestination.Domain ?? string.Empty);
                 }
+
 			    var request = requestFactory.Create(url + "/replication/info", "POST", ravenConnectionStringOptions);
 				try
 				{	
@@ -117,7 +111,7 @@ namespace Raven.Database.Server.Responders.Admin
 			switch (response.StatusCode)
 			{
 				case HttpStatusCode.BadRequest:
-					string error = GetErrorStringFromException(e, response);
+					var error = GetErrorStringFromException(e, response);
 					replicationInfoStatus.Status = error.Contains("Could not figure out what to do")
 					                                       ? "Replication Bundle not activated."
 					                                       : error;
@@ -144,6 +138,7 @@ namespace Raven.Database.Server.Responders.Admin
 		    var s = webException.Data["original-value"] as string;
 		    if (s != null)
 			    return s;
+
 		    using (var streamReader = new StreamReader(response.GetResponseStreamWithHttpDecompression()))
 		    {
 			    return streamReader.ReadToEnd();

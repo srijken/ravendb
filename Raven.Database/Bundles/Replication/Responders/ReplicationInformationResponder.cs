@@ -3,12 +3,10 @@
 //      Copyright (c) Hibernating Rhinos LTD. All rights reserved.
 //  </copyright>
 // -----------------------------------------------------------------------
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Raven.Abstractions.Data;
 using Raven.Bundles.Replication.Tasks;
-using Raven.Database.Bundles.Replication;
 using Raven.Database.Server;
 using Raven.Database.Server.Abstractions;
 using Raven.Database.Extensions;
@@ -34,8 +32,9 @@ namespace Raven.Bundles.Replication.Responders
 
 		public override void Respond(IHttpContext context)
 		{
-			Etag mostRecentDocumentEtag = Etag.Empty;
-			Etag mostRecentAttachmentEtag = Etag.Empty;
+			var mostRecentDocumentEtag = Etag.Empty;
+			var mostRecentAttachmentEtag = Etag.Empty;
+
 			Database.TransactionalStorage.Batch(accessor =>
 			{
 				mostRecentDocumentEtag = accessor.Staleness.GetMostRecentDocumentEtag();

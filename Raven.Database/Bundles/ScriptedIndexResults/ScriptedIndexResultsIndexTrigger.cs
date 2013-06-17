@@ -20,7 +20,7 @@ namespace Raven.Database.Bundles.ScriptedIndexResults
     [ExportMetadata("Bundle", "ScriptedIndexResults")]
     public class ScriptedIndexResultsIndexTrigger : AbstractIndexUpdateTrigger
     {
-        private static ILog log = LogManager.GetCurrentClassLogger();
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         public override AbstractIndexUpdateTriggerBatcher CreateBatcher(string indexName)
         {
@@ -98,7 +98,7 @@ namespace Raven.Database.Bundles.ScriptedIndexResults
                         }
                         catch (Exception e)
                         {
-                            log.Warn("Could not apply index script " + scriptedIndexResults.Id + " to index result with key: " + kvp.Key, e);
+                            Log.Warn("Could not apply index script " + scriptedIndexResults.Id + " to index result with key: " + kvp.Key, e);
                         }
                     }
                 }
@@ -158,6 +158,7 @@ namespace Raven.Database.Bundles.ScriptedIndexResults
                                 "since that would create a infinite loop of indexing/creating documents.");
                         return;
                     }
+
                     if (entityNames.Contains(entityName))
                     {
                         throw new InvalidOperationException(
@@ -199,6 +200,7 @@ namespace Raven.Database.Bundles.ScriptedIndexResults
                         }
                     }
                 }
+
                 return ravenJObject;
             }
 

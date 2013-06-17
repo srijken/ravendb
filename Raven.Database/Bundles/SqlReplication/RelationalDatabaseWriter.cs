@@ -9,7 +9,6 @@ using Raven.Abstractions;
 using Raven.Abstractions.Data;
 using Raven.Abstractions.Logging;
 using Raven.Database.Extensions;
-using Raven.Database.Indexing;
 using Raven.Imports.Newtonsoft.Json.Linq;
 using Raven.Json.Linq;
 using System.Linq;
@@ -26,7 +25,7 @@ namespace Raven.Database.Bundles.SqlReplication
 		private readonly DbConnection connection;
 		private readonly DbTransaction tx;
 
-		private static ILog log = LogManager.GetCurrentClassLogger();
+		private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
 		bool hadErrors;
 
@@ -97,7 +96,7 @@ namespace Raven.Database.Bundles.SqlReplication
 			return true;
 		}
 
-		private void InsertItems(string tableName, string pkName, List<ItemToReplicate> dataForTable)
+		private void InsertItems(string tableName, string pkName, IEnumerable<ItemToReplicate> dataForTable)
 		{
 			foreach (var itemToReplicate in dataForTable)
 			{
@@ -146,7 +145,7 @@ namespace Raven.Database.Bundles.SqlReplication
 					}
 					catch (Exception e)
 					{
-						log.WarnException(
+						Log.WarnException(
 							"Failure to replicate changes to relational database for: " + cfg.Name + " (doc: "+  itemToReplicate.DocumentId +" ), will continue trying." +
 							Environment.NewLine + cmd.CommandText, e);
 						replicationStatistics.RecordWriteError(e, database);
@@ -187,8 +186,8 @@ namespace Raven.Database.Bundles.SqlReplication
 						{
 							sb.Append("'").Append(SanitizeSqlValue(identifiers[j])).Append("'");
 						}
-						
 					}
+
 					sb.Append(")");
 
 					cmd.CommandText = sb.ToString();
@@ -199,7 +198,7 @@ namespace Raven.Database.Bundles.SqlReplication
 					}
 					catch (Exception e)
 					{
-						log.WarnException(
+						Log.WarnException(
 							"Failure to replicate changes to relational database for: " + cfg.Name + ", will continue trying." +
 							Environment.NewLine + cmd.CommandText, e);
 						replicationStatistics.RecordWriteError(e, database);
@@ -228,11 +227,11 @@ namespace Raven.Database.Bundles.SqlReplication
 
 				default:
 					// If we don't know, try to get it from the CommandBuilder.
-					return getParameterNameFromBuilder(commandBuilder, paramName);
+					return GetParameterNameFromBuilder(commandBuilder, paramName);
 			}
 		}
 
-		private static readonly Func<DbCommandBuilder, string, string> getParameterNameFromBuilder =
+		private static readonly Func<DbCommandBuilder, string, string> GetParameterNameFromBuilder =
 			(Func<DbCommandBuilder, string, string>)
 			Delegate.CreateDelegate(typeof(Func<DbCommandBuilder, string, string>),
 									typeof(DbCommandBuilder).GetMethod("GetParameterName",
@@ -307,7 +306,7 @@ namespace Raven.Database.Bundles.SqlReplication
 			}
 			catch (Exception e)
 			{
-				log.WarnException(
+				Log.WarnException(
 					string.Format("Could not find provider factory {0} to replicate to sql for {1}, ignoring", cfg.FactoryName,
 								  cfg.Name), e);
 
@@ -326,8 +325,6 @@ namespace Raven.Database.Bundles.SqlReplication
 			}
 			return providerFactory;
 		}
-
-
 
 		public void Dispose()
 		{

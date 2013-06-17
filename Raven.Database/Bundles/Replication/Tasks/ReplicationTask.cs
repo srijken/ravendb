@@ -26,7 +26,6 @@ using Raven.Database;
 using Raven.Database.Data;
 using Raven.Database.Impl;
 using Raven.Database.Impl.Synchronization;
-using Raven.Database.Indexing;
 using Raven.Database.Plugins;
 using Raven.Database.Prefetching;
 using Raven.Database.Server;
@@ -45,13 +44,12 @@ namespace Raven.Bundles.Replication.Tasks
 			public int Value;
 		}
 
-		public readonly ConcurrentQueue<Task> activeTasks = new ConcurrentQueue<Task>();
-
+		public readonly ConcurrentQueue<Task> ActiveTasks = new ConcurrentQueue<Task>();
 		private readonly ConcurrentDictionary<string, DestinationStats> destinationStats =
 			new ConcurrentDictionary<string, DestinationStats>(StringComparer.OrdinalIgnoreCase);
 
 		private DocumentDatabase docDb;
-		private readonly static ILog log = LogManager.GetCurrentClassLogger();
+		private readonly static ILog Log = LogManager.GetCurrentClassLogger();
 		private bool firstTimeFoundNoReplicationDocument = true;
 		private readonly ConcurrentDictionary<string, IntHolder> activeReplicationTasks = new ConcurrentDictionary<string, IntHolder>();
 
@@ -89,8 +87,6 @@ namespace Raven.Bundles.Replication.Tasks
 			// make sure that the doc db waits for the replication task shutdown
 			docDb.ExtensionsState.GetOrAdd(Guid.NewGuid().ToString(), s => disposableAction);
 			task.Start();
-            
-
 		}
 
 		private void Execute()
@@ -100,7 +96,7 @@ namespace Raven.Bundles.Replication.Tasks
 				var name = GetType().Name;
 
 				var timeToWaitInMinutes = TimeSpan.FromMinutes(5);
-				bool runningBecauseOfDataModifications = false;
+				var runningBecauseOfDataModifications = false;
 				var context = docDb.WorkContext;
 				NotifySiblings();
 				while (context.DoWork)
@@ -148,23 +144,23 @@ namespace Raven.Bundles.Replication.Tasks
 											}
 											catch (Exception e)
 											{
-												log.ErrorException("Could not replicate to " + destination, e);
+												Log.ErrorException("Could not replicate to " + destination, e);
 											}
 										}
 									});
 
 									startedTasks.Add(replicationTask);
 
-									activeTasks.Enqueue(replicationTask);
+									ActiveTasks.Enqueue(replicationTask);
 									replicationTask.ContinueWith(_ =>
 									{
 										// here we purge all the completed tasks at the head of the queue
 										Task task;
-										while (activeTasks.TryPeek(out task))
+										while (ActiveTasks.TryPeek(out task))
 										{
 											if (!task.IsCompleted && !task.IsCanceled && !task.IsFaulted)
 												break;
-											activeTasks.TryDequeue(out task); // remove it from end
+											ActiveTasks.TryDequeue(out task); // remove it from end
 										}
 									});
 								}
@@ -186,7 +182,7 @@ namespace Raven.Bundles.Replication.Tasks
 					}
 					catch (Exception e)
 					{
-						log.ErrorException("Failed to perform replication", e);
+						Log.ErrorException("Failed to perform replication", e);
 					}
 
 					runningBecauseOfDataModifications = context.WaitForWork(timeToWaitInMinutes, ref workCounter, name);
@@ -200,11 +196,10 @@ namespace Raven.Bundles.Replication.Tasks
 		private void NotifySiblings()
 		{
 			var notifications = new BlockingCollection<RavenConnectionStringOptions>();
-
 			Task.Factory.StartNew(() => NotifySibling(notifications));
-
-			int skip = 0;
+			var skip = 0;
 			var replicationDestinations = GetReplicationDestinations();
+
 			foreach (var replicationDestination in replicationDestinations)
 			{
 				notifications.TryAdd(replicationDestination.ConnectionStringOptions, 15 * 1000);
@@ -261,7 +256,7 @@ namespace Raven.Bundles.Replication.Tasks
 					}
 					catch (Exception e)
 					{
-						log.ErrorException("Could not get connection string options to notify sibling servers about restart", e);
+						Log.ErrorException("Could not get connection string options to notify sibling servers about restart", e);
 						return;
 					}
 					try
@@ -273,7 +268,7 @@ namespace Raven.Bundles.Replication.Tasks
 					}
 					catch (Exception e)
 					{
-						log.WarnException("Could not notify " + connectionStringOptions.Url + " about sibling server being up & running", e);
+						Log.WarnException("Could not notify " + connectionStringOptions.Url + " about sibling server being up & running", e);
 					}
 				}
 		}
@@ -287,21 +282,21 @@ namespace Raven.Bundles.Replication.Tasks
 			if (failureInformation.FailureCount > 1000)
 			{
 				var shouldReplicateTo = currentReplicationAttempts % 10 == 0;
-				log.Debug("Failure count for {0} is {1}, skipping replication: {2}",
+				Log.Debug("Failure count for {0} is {1}, skipping replication: {2}",
 					dest, failureInformation.FailureCount, shouldReplicateTo == false);
 				return shouldReplicateTo;
 			}
 			if (failureInformation.FailureCount > 100)
 			{
 				var shouldReplicateTo = currentReplicationAttempts % 5 == 0;
-				log.Debug("Failure count for {0} is {1}, skipping replication: {2}",
+				Log.Debug("Failure count for {0} is {1}, skipping replication: {2}",
 					dest, failureInformation.FailureCount, shouldReplicateTo == false);
 				return shouldReplicateTo;
 			}
 			if (failureInformation.FailureCount > 10)
 			{
 				var shouldReplicateTo = currentReplicationAttempts % 2 == 0;
-				log.Debug("Failure count for {0} is {1}, skipping replication: {2}",
+				Log.Debug("Failure count for {0} is {1}, skipping replication: {2}",
 					dest, failureInformation.FailureCount, shouldReplicateTo == false);
 				return shouldReplicateTo;
 			}
@@ -318,7 +313,7 @@ namespace Raven.Bundles.Replication.Tasks
 			if (firstTimeFoundNoReplicationDocument)
 			{
 				firstTimeFoundNoReplicationDocument = false;
-				log.Warn("Replication bundle is installed, but there is no destination in 'Raven/Replication/Destinations'.\r\nReplication results in NO-OP");
+				Log.Warn("Replication bundle is installed, but there is no destination in 'Raven/Replication/Destinations'.\r\nReplication results in NO-OP");
 			}
 		}
 
@@ -328,6 +323,7 @@ namespace Raven.Bundles.Replication.Tasks
 			{
 				if (docDb.Disposed)
 					return false;
+
 				using (docDb.DisableAllTriggersForCurrentThread())
 				{
 					SourceReplicationInformation destinationsReplicationInformationForSource;
@@ -339,7 +335,7 @@ namespace Raven.Bundles.Replication.Tasks
 					}
 					catch (Exception e)
 					{
-						log.WarnException("Failed to replicate to: " + destination, e);
+						Log.WarnException("Failed to replicate to: " + destination, e);
 						return false;
 					}
 
@@ -385,12 +381,13 @@ namespace Raven.Bundles.Replication.Tasks
 				}
 				return null;
 			}
+
 			string lastError;
 			if (TryReplicationAttachments(destination, attachments, out lastError) == false)// failed to replicate, start error handling strategy
 			{
 				if (IsFirstFailure(destination.ConnectionStringOptions.Url))
 				{
-					log.Info(
+					Log.Info(
 						"This is the first failure for {0}, assuming transient failure and trying again",
 						destination);
 					if (TryReplicationAttachments(destination, attachments, out lastError))// success on second fail
@@ -426,12 +423,13 @@ namespace Raven.Bundles.Replication.Tasks
 					documentsToReplicate.LastEtag);
 				return null;
 			}
+
 			string lastError;
 			if (TryReplicationDocuments(destination, documentsToReplicate.Documents, out lastError) == false)// failed to replicate, start error handling strategy
 			{
 				if (IsFirstFailure(destination.ConnectionStringOptions.Url))
 				{
-					log.Info(
+					Log.Info(
 						"This is the first failure for {0}, assuming transient failure and trying again",
 						destination);
 					if (TryReplicationDocuments(destination, documentsToReplicate.Documents, out lastError))// success on second fail
@@ -468,13 +466,13 @@ namespace Raven.Bundles.Replication.Tasks
 			{
 				var response = e.Response as HttpWebResponse;
 				if (response != null && (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.NotFound))
-					log.WarnException("Replication is not enabled on: " + destination, e);
+					Log.WarnException("Replication is not enabled on: " + destination, e);
 				else
-					log.WarnException("Failed to contact replication destination: " + destination, e);
+					Log.WarnException("Failed to contact replication destination: " + destination, e);
 			}
 			catch (Exception e)
 			{
-				log.WarnException("Failed to contact replication destination: " + destination, e);
+				Log.WarnException("Failed to contact replication destination: " + destination, e);
 			}
 		}
 
@@ -549,7 +547,7 @@ namespace Raven.Bundles.Replication.Tasks
 
 				request.WriteBson(jsonAttachments);
 				request.ExecuteRequest();
-				log.Info("Replicated {0} attachments to {1} in {2:#,#;;0} ms", jsonAttachments.Length, destination, sp.ElapsedMilliseconds);
+				Log.Info("Replicated {0} attachments to {1} in {2:#,#;;0} ms", jsonAttachments.Length, destination, sp.ElapsedMilliseconds);
 				errorMessage = "";
 				return true;
 			}
@@ -564,7 +562,7 @@ namespace Raven.Bundles.Replication.Tasks
 						try
 						{
 							var ravenJObject = RavenJObject.Parse(error);
-							log.WarnException("Replication to " + destination + " had failed\r\n" + ravenJObject.Value<string>("Error"), e);
+							Log.WarnException("Replication to " + destination + " had failed\r\n" + ravenJObject.Value<string>("Error"), e);
 							errorMessage = error;
 							return false;
 						}
@@ -572,20 +570,20 @@ namespace Raven.Bundles.Replication.Tasks
 						{
 						}
 
-						log.WarnException("Replication to " + destination + " had failed\r\n" + error, e);
+						Log.WarnException("Replication to " + destination + " had failed\r\n" + error, e);
 						errorMessage = error;
 					}
 				}
 				else
 				{
-					log.WarnException("Replication to " + destination + " had failed", e);
+					Log.WarnException("Replication to " + destination + " had failed", e);
 					errorMessage = e.Message;
 				}
 				return false;
 			}
 			catch (Exception e)
 			{
-				log.WarnException("Replication to " + destination + " had failed", e);
+				Log.WarnException("Replication to " + destination + " had failed", e);
 				errorMessage = e.Message;
 				return false;
 			}
@@ -595,7 +593,7 @@ namespace Raven.Bundles.Replication.Tasks
 		{
 			try
 			{
-				log.Debug("Starting to replicate {0} documents to {1}", jsonDocuments.Length, destination);
+				Log.Debug("Starting to replicate {0} documents to {1}", jsonDocuments.Length, destination);
 				var url = destination.ConnectionStringOptions.Url + "/replication/replicateDocs?from=" + UrlEncodedServerUrl()
 						  + "&dbid=" + docDb.TransactionalStorage.Id;
 
@@ -604,7 +602,7 @@ namespace Raven.Bundles.Replication.Tasks
 				var request = httpRavenRequestFactory.Create(url, "POST", destination.ConnectionStringOptions);
 				request.Write(jsonDocuments);
 				request.ExecuteRequest();
-				log.Info("Replicated {0} documents to {1} in {2:#,#;;0} ms", jsonDocuments.Length, destination, sp.ElapsedMilliseconds);
+				Log.Info("Replicated {0} documents to {1} in {2:#,#;;0} ms", jsonDocuments.Length, destination, sp.ElapsedMilliseconds);
 				lastError = "";
 				return true;
 			}
@@ -613,30 +611,30 @@ namespace Raven.Bundles.Replication.Tasks
 				var response = e.Response as HttpWebResponse;
 				if (response != null)
 				{
-					Stream responseStream = response.GetResponseStream();
+					var responseStream = response.GetResponseStream();
 					if (responseStream != null)
 					{
 						using (var streamReader = new StreamReader(responseStream))
 						{
 							var error = streamReader.ReadToEnd();
-							log.WarnException("Replication to " + destination + " had failed\r\n" + error, e);
+							Log.WarnException("Replication to " + destination + " had failed\r\n" + error, e);
 						}
 					}
 					else
 					{
-						log.WarnException("Replication to " + destination + " had failed", e);
+						Log.WarnException("Replication to " + destination + " had failed", e);
 					}
 				}
 				else
 				{
-					log.WarnException("Replication to " + destination + " had failed", e);
+					Log.WarnException("Replication to " + destination + " had failed", e);
 				}
 				lastError = e.Message;
 				return false;
 			}
 			catch (Exception e)
 			{
-				log.WarnException("Replication to " + destination + " had failed", e);
+				Log.WarnException("Replication to " + destination + " had failed", e);
 				lastError = e.Message;
 				return false;
 			}
@@ -665,7 +663,7 @@ namespace Raven.Bundles.Replication.Tasks
 						synchronizationEtag,
 						destinationsReplicationInformationForSource.LastDocumentEtag);
 
-					int docsSinceLastReplEtag = 0;
+					var docsSinceLastReplEtag = 0;
 					List<JsonDocument> docsToReplicate;
 					List<JsonDocument> filteredDocsToReplicate;
 					result.LastEtag = lastEtag;
@@ -686,8 +684,7 @@ namespace Raven.Bundles.Replication.Tasks
 									}
 
 									return destination.FilterDocuments(destinationId, document.Key, document.Metadata) && prefetchingBehavior.FilterDocuments(document);
-								})
-								.ToList();
+								}).ToList();
 
 						docsSinceLastReplEtag += docsToReplicate.Count;
 						result.CountOfFilteredDocumentsWhichAreSystemDocuments += docsToReplicate.Count(doc => destination.IsSystemDocumentId(doc.Key));
@@ -706,10 +703,10 @@ namespace Raven.Bundles.Replication.Tasks
 							break;
 						}
 
-						log.Debug("All the docs were filtered, trying another batch from etag [>{0}]", result.LastEtag);
+						Log.Debug("All the docs were filtered, trying another batch from etag [>{0}]", result.LastEtag);
 					}
 
-					log.Debug(() =>
+					Log.Debug(() =>
 					{
 						if (docsSinceLastReplEtag == 0)
 							return string.Format("No documents to replicate to {0} - last replicated etag: {1}", destination,
@@ -741,7 +738,7 @@ namespace Raven.Bundles.Replication.Tasks
 			}
 			catch (Exception e)
 			{
-				log.WarnException("Could not get documents to replicate after: " + destinationsReplicationInformationForSource.LastDocumentEtag, e);
+				Log.WarnException("Could not get documents to replicate after: " + destinationsReplicationInformationForSource.LastDocumentEtag, e);
 			}
 			return result;
 		}
@@ -770,14 +767,14 @@ namespace Raven.Bundles.Replication.Tasks
 		private Tuple<RavenJArray, Etag> GetAttachments(SourceReplicationInformation destinationsReplicationInformationForSource, ReplicationStrategy destination)
 		{
 			RavenJArray attachments = null;
-			Etag lastAttachmentEtag = Etag.Empty;
+			var lastAttachmentEtag = Etag.Empty;
 			try
 			{
 				var destinationId = destinationsReplicationInformationForSource.ServerInstanceId.ToString();
 
 				docDb.TransactionalStorage.Batch(actions =>
 				{
-					int attachmentSinceLastEtag = 0;
+					var attachmentSinceLastEtag = 0;
 					List<AttachmentInformation> attachmentsToReplicate;
 					List<AttachmentInformation> filteredAttachmentsToReplicate;
 					lastAttachmentEtag = destinationsReplicationInformationForSource.LastAttachmentEtag;
@@ -795,13 +792,13 @@ namespace Raven.Bundles.Replication.Tasks
 							break;
 						}
 
-						AttachmentInformation jsonDocument = attachmentsToReplicate.Last();
-						Etag attachmentEtag = jsonDocument.Etag;
-						log.Debug("All the attachments were filtered, trying another batch from etag [>{0}]", attachmentEtag);
+						var jsonDocument = attachmentsToReplicate.Last();
+						var attachmentEtag = jsonDocument.Etag;
+						Log.Debug("All the attachments were filtered, trying another batch from etag [>{0}]", attachmentEtag);
 						lastAttachmentEtag = attachmentEtag;
 					}
 
-					log.Debug(() =>
+					Log.Debug(() =>
 					{
 						if (attachmentSinceLastEtag == 0)
 							return string.Format("No attachments to replicate to {0} - last replicated etag: {1}", destination,
@@ -842,7 +839,7 @@ namespace Raven.Bundles.Replication.Tasks
 			}
 			catch (Exception e)
 			{
-				log.WarnException("Could not get attachments to replicate after: " + destinationsReplicationInformationForSource.LastAttachmentEtag, e);
+				Log.WarnException("Could not get attachments to replicate after: " + destinationsReplicationInformationForSource.LastAttachmentEtag, e);
 			}
 			return Tuple.Create(attachments, lastAttachmentEtag);
 		}
@@ -872,7 +869,7 @@ namespace Raven.Bundles.Replication.Tasks
 		{
 			try
 			{
-				Etag currentEtag = Etag.Empty;
+				var currentEtag = Etag.Empty;
 				docDb.TransactionalStorage.Batch(accessor => currentEtag = accessor.Staleness.GetMostRecentDocumentEtag());
 				var url = destination.ConnectionStringOptions.Url + "/replication/lastEtag?from=" + UrlEncodedServerUrl() +
 						  "&currentEtag=" + currentEtag + "&dbid=" + docDb.TransactionalStorage.Id;
@@ -883,14 +880,14 @@ namespace Raven.Bundles.Replication.Tasks
 			{
 				var response = e.Response as HttpWebResponse;
 				if (response != null && (response.StatusCode == HttpStatusCode.BadRequest || response.StatusCode == HttpStatusCode.NotFound))
-					log.WarnException("Replication is not enabled on: " + destination, e);
+					Log.WarnException("Replication is not enabled on: " + destination, e);
 				else
-					log.WarnException("Failed to contact replication destination: " + destination, e);
+					Log.WarnException("Failed to contact replication destination: " + destination, e);
 				RecordFailure(destination.ConnectionStringOptions.Url, e.Message);
 			}
 			catch (Exception e)
 			{
-				log.WarnException("Failed to contact replication destination: " + destination, e);
+				Log.WarnException("Failed to contact replication destination: " + destination, e);
 				RecordFailure(destination.ConnectionStringOptions.Url, e.Message);
 			}
 
@@ -916,7 +913,7 @@ namespace Raven.Bundles.Replication.Tasks
 			}
 			catch (Exception e)
 			{
-				log.Warn("Cannot get replication destinations", e);
+				Log.Warn("Cannot get replication destinations", e);
 				return new ReplicationStrategy[0];
 			}
 
@@ -965,7 +962,7 @@ namespace Raven.Bundles.Replication.Tasks
 			}
 			catch (Exception e)
 			{
-				log.ErrorException(
+				Log.ErrorException(
 					string.Format("IGNORING BAD REPLICATION CONFIG!{0}Could not figure out connection options for [Url: {1}, ClientVisibleUrl: {2}]",
 					Environment.NewLine, x.Url, x.ClientVisibleUrl),
 					e);
@@ -1026,7 +1023,6 @@ namespace Raven.Bundles.Replication.Tasks
 			return false;
 		}
 
-
 		private void ResetFailureForHeartbeat(string src)
 		{
 			RecordSuccess(src, lastHeartbeatReceived: SystemTime.UtcNow);
@@ -1037,7 +1033,7 @@ namespace Raven.Bundles.Replication.Tasks
 		public void Dispose()
 		{
 			Task task;
-			while (activeTasks.TryDequeue(out task))
+			while (ActiveTasks.TryDequeue(out task))
 			{
 				task.Wait();
 			}

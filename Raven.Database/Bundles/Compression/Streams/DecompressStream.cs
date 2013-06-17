@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Raven.Abstractions.Extensions;
 using Raven.Bundles.Compression.Plugin;
 
 namespace Raven.Bundles.Compression.Streams
@@ -38,7 +34,7 @@ namespace Raven.Bundles.Compression.Streams
 		private bool CheckMagicNumber()
 		{
 			// Read an int
-			byte[] buffer = new byte[4];
+			var buffer = new byte[4];
 			var totalCount = 0;
 			while (totalCount < buffer.Length)
 			{
@@ -79,10 +75,7 @@ namespace Raven.Bundles.Compression.Streams
 
 		public override int Read(byte[] buffer, int offset, int count)
 		{
-			if (compressed)
-				return deflateStream.Read(buffer, offset, count);
-			else
-				return underlyingStream.Read(buffer, offset, count);
+			return compressed ? deflateStream.Read(buffer, offset, count) : underlyingStream.Read(buffer, offset, count);
 		}
 
 		public override void Write(byte[] buffer, int offset, int count)

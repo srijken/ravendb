@@ -14,12 +14,12 @@ namespace Raven.Bundles.Replication.Triggers
 	[InheritedExport(typeof(AbstractPutTrigger))]
 	public class PreventConflictDocumentsPutTrigger : AbstractPutTrigger
 	{
-		public override void OnPut(string key, Json.Linq.RavenJObject document, Json.Linq.RavenJObject metadata, Abstractions.Data.TransactionInformation transactionInformation)
+		public override void OnPut(string key, Json.Linq.RavenJObject document, Json.Linq.RavenJObject metadata, TransactionInformation transactionInformation)
 		{
 			metadata.Remove(Constants.RavenReplicationConflictDocument); // or conflict documents
 		}
 
-		public override VetoResult AllowPut(string key, Json.Linq.RavenJObject document, Json.Linq.RavenJObject metadata, Abstractions.Data.TransactionInformation transactionInformation)
+		public override VetoResult AllowPut(string key, Json.Linq.RavenJObject document, Json.Linq.RavenJObject metadata, TransactionInformation transactionInformation)
 		{
 			if (metadata.ContainsKey(Constants.RavenReplicationConflictDocument))
 				return VetoResult.Deny("You cannot PUT a document with metadata " + Constants.RavenReplicationConflictDocument);

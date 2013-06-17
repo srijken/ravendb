@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Raven.Abstractions.Data;
 using Raven.Abstractions.Extensions;
 using Raven.Bundles.Replication.Plugins;
-using Raven.Database.Impl;
 using Raven.Json.Linq;
 
 namespace Raven.Bundles.Replication.Responders
@@ -45,6 +43,7 @@ namespace Raven.Bundles.Replication.Responders
 			{
 				{"Conflicts", conflictsArray}
 			};
+
 			var memoryStream = new MemoryStream();
 			conflictAttachment.WriteTo(memoryStream);
 			memoryStream.Position = 0;
@@ -57,7 +56,8 @@ namespace Raven.Bundles.Replication.Responders
 				                                  {"@Http-Status-Code", 409},
 				                                  {"@Http-Status-Description", "Conflict"}
 			                                  });
-			return new CreatedConflict()
+
+			return new CreatedConflict
 			{
 				Etag = newEtag,
 				ConflictedIds = conflictsArray.Select(x => x.Value<string>()).ToArray()
@@ -80,7 +80,7 @@ namespace Raven.Bundles.Replication.Responders
 
 			var newETag = Actions.Attachments.AddAttachment(id, existingItem.Etag, memoryStream, existingItem.Metadata);
 
-			return new CreatedConflict()
+			return new CreatedConflict
 			{
 				Etag = newETag,
 				ConflictedIds = conflictArray.Select(x => x.Value<string>()).ToArray()

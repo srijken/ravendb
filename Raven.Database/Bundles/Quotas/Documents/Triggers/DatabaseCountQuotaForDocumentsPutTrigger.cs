@@ -1,6 +1,5 @@
 using System.ComponentModel.Composition;
 using Raven.Abstractions.Data;
-using Raven.Bundles.Quotas.Size;
 using Raven.Database.Plugins;
 using Raven.Json.Linq;
 
@@ -15,6 +14,5 @@ namespace Raven.Bundles.Quotas.Documents.Triggers
 		{
 			return DocQuotaConfiguration.GetConfiguration(Database).AllowPut();
 		}
-
 	}
 }

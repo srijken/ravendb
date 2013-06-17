@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Raven.Abstractions.Extensions;
 using Raven.Bundles.Compression.Plugin;
 
 namespace Raven.Bundles.Compression.Streams
@@ -21,7 +16,7 @@ namespace Raven.Bundles.Compression.Streams
 				var magic = BitConverter.GetBytes(DocumentCompression.CompressFileMagic);
 				underlyingStream.Write(magic, 0, magic.Length);
 
-				this.deflateStream = new DeflateStream(underlyingStream, CompressionMode.Compress, leaveOpen: false);
+				deflateStream = new DeflateStream(underlyingStream, CompressionMode.Compress, leaveOpen: false);
 			}
 			catch
 			{

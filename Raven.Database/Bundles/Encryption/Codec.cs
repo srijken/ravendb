@@ -21,7 +21,7 @@ namespace Raven.Bundles.Encryption
 
 		public Codec(EncryptionSettings settings)
 		{
-			this.EncryptionSettings = settings;
+			EncryptionSettings = settings;
 		}
 
 		public Stream Encode(string key, Stream dataStream)
@@ -145,7 +145,7 @@ namespace Raven.Bundles.Encryption
 
 		private Tuple<byte[], byte[]> GetStartingKeyAndIVForEncryption(SymmetricAlgorithm algorithm)
 		{
-			int bits = algorithm.ValidKeySize(Constants.DefaultKeySizeToUseInActualEncryptionInBits) ? 
+			var bits = algorithm.ValidKeySize(Constants.DefaultKeySizeToUseInActualEncryptionInBits) ? 
 				Constants.DefaultKeySizeToUseInActualEncryptionInBits : 
 				algorithm.LegalKeySizes[0].MaxSize;
 
@@ -178,7 +178,7 @@ namespace Raven.Bundles.Encryption
 	{
 		public static Stream WriteSalt(this Stream stream, string key)
 		{
-			byte[] keyBytes = Encoding.UTF8.GetBytes(key);
+			var keyBytes = Encoding.UTF8.GetBytes(key);
 			stream.Write(keyBytes, 0, keyBytes.Length);
 			return stream;
 		}
@@ -187,8 +187,8 @@ namespace Raven.Bundles.Encryption
 		{
 			try
 			{
-				byte[] keyBytes = Encoding.UTF8.GetBytes(key);
-				byte[] readBytes = stream.ReadEntireBlock(keyBytes.Length);
+				var keyBytes = Encoding.UTF8.GetBytes(key);
+				var readBytes = stream.ReadEntireBlock(keyBytes.Length);
 				if (!readBytes.SequenceEqual(keyBytes))
 				{
 					throw new InvalidDataException("The encrypted stream's salt was different than the expected salt.");

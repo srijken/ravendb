@@ -15,8 +15,8 @@ namespace Raven.Bundles.Replication.Responders
 		public override string UrlPattern
 		{
 			get { return "^/admin/replication/purge-tombstones$"; }
-
 		}
+
 		public override void RespondToAdmin(IHttpContext context)
 		{
 			var docEtagStr = context.Request.QueryString["docEtag"];

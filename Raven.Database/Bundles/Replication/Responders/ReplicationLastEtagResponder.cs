@@ -20,7 +20,7 @@ namespace Raven.Bundles.Replication.Responders
 	[InheritedExport(typeof(AbstractRequestResponder))]
 	public class ReplicationLastEtagResponder : AbstractRequestResponder
 	{
-		private ILog log = LogManager.GetCurrentClassLogger();
+		private readonly ILog log = LogManager.GetCurrentClassLogger();
 
 		public override void Respond(IHttpContext context)
 		{
@@ -34,8 +34,10 @@ namespace Raven.Bundles.Replication.Responders
 				context.SetStatusToBadRequest();
 				return;
 			}
+
 			while (src.EndsWith("/"))
 				src = src.Substring(0, src.Length - 1);// remove last /, because that has special meaning for Raven
+
 			if (string.IsNullOrEmpty(src))
 			{
 				context.SetStatusToBadRequest();
@@ -49,8 +51,7 @@ namespace Raven.Bundles.Replication.Responders
 					break;
 				case "PUT":
 					OnPut(context, src);
-					break;	
-
+					break;
 			}
 		}
 
@@ -62,7 +63,7 @@ namespace Raven.Bundles.Replication.Responders
 
 				SourceReplicationInformation sourceReplicationInformation;
 
-				Guid serverInstanceId = Database.TransactionalStorage.Id; // this is my id, sent to the remote serve
+				var serverInstanceId = Database.TransactionalStorage.Id; // this is my id, sent to the remote serve
 
 				if (document == null)
 				{
@@ -109,6 +110,7 @@ namespace Raven.Bundles.Replication.Responders
 				{
 
 				}
+
 				Guid serverInstanceId;
 				if (Guid.TryParse(context.Request.QueryString["dbid"], out serverInstanceId) == false)
 					serverInstanceId = Database.TransactionalStorage.Id;
