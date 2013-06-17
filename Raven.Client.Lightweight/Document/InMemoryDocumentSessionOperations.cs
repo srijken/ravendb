@@ -23,6 +23,7 @@ using Raven.Client.Connection;
 using Raven.Client.Document.DTC;
 using Raven.Client.Exceptions;
 using Raven.Client.Util;
+using Raven.Imports.Newtonsoft.Json.Linq;
 using Raven.Json.Linq;
 
 namespace Raven.Client.Document
@@ -887,8 +888,32 @@ more responsive application.
 				result.Entities.Add(entity.Key);
 				if (entity.Value.Key != null)
 					entitiesByKey.Remove(entity.Value.Key);
-				result.Commands.Add(CreatePutEntityCommand(entity.Key, entity.Value));
+				result.Commands.Add(CreatePutEntityCommand(AddMissingProperties(RavenJObject.FromObject(entity.Key), entity.Value.OriginalValue), entity.Value));
 			}
+		}
+
+		private RavenJObject AddMissingProperties(RavenJObject newDoc, RavenJObject original)
+		{
+			foreach (var item in original)
+			{
+				RavenJToken value;
+				if (newDoc.TryGetValue(item.Key, out value) == false)
+				{
+					newDoc[item.Key] = item.Value;
+				}
+				else
+				{
+					switch (value.Type)
+					{
+						case JTokenType.Array:
+						case JTokenType.Object:
+							//newDoc[item.Key] = AddMissingProperties(RavenJObject.FromObject(newDoc[item.Key]), RavenJObject.FromObject(original[item.Key]));
+							break;
+					}
+				}
+			}
+
+			return newDoc;
 		}
 
 		private void PrepareForEntitiesDeletion(SaveChangesData result)
