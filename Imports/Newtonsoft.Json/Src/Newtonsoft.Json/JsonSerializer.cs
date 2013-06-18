@@ -79,6 +79,8 @@ namespace Raven.Imports.Newtonsoft.Json
     /// </summary>
     public virtual event EventHandler<ErrorEventArgs> Error;
 
+	public event Action<object, JsonWriter> BeforeClosingObject;
+
     /// <summary>
     /// Gets or sets the <see cref="IReferenceResolver"/> used by the serializer when resolving references.
     /// </summary>
@@ -840,7 +842,7 @@ namespace Raven.Imports.Newtonsoft.Json
                                           ? new TraceJsonWriter(jsonWriter)
                                           : null;
 
-      JsonSerializerInternalWriter serializerWriter = new JsonSerializerInternalWriter(this);
+	  JsonSerializerInternalWriter serializerWriter = new JsonSerializerInternalWriter(this, BeforeClosingObject);
       serializerWriter.Serialize(traceJsonWriter ?? jsonWriter, value, objectType);
 
       if (traceJsonWriter != null)

@@ -4,9 +4,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using Raven.Abstractions.Extensions;
 using Raven.Imports.Newtonsoft.Json.Serialization;
 
 namespace Raven.Client.Document
@@ -25,7 +28,34 @@ namespace Raven.Client.Document
 		/// recommended to reuse <see cref="T:Raven.Imports.Newtonsoft.Json.Serialization.DefaultContractResolver"/> instances with the <see cref="T:Raven.Imports.Newtonsoft.Json.JsonSerializer"/>.</param>
 		public DefaultRavenContractResolver(bool shareCache) : base(shareCache)
 		{
+			clearExtensionData = new DisposableAction(() => currentExtensionData = null);
 		}
+
+
+
+		[ThreadStatic]
+		private static ExtensionDataSetter currentExtensionData;
+		private readonly DisposableAction clearExtensionData;
+
+		public IDisposable RegisterForExtensionData(ExtensionDataSetter setter)
+		{
+			if (currentExtensionData != null)
+				throw new InvalidOperationException("Cannot add a data setter because on is already added");
+			currentExtensionData = setter;
+			return clearExtensionData;
+		}
+
+		protected override JsonObjectContract CreateObjectContract(Type objectType)
+		{
+			var jsonObjectContract = base.CreateObjectContract(objectType);
+			jsonObjectContract.ExtensionDataSetter += (o, key, value) =>
+			{
+				if(currentExtensionData != null)
+					currentExtensionData(o, key, value);
+			};
+			return jsonObjectContract;
+		}
+
 
 		/// <summary>
 		/// Gets the serializable members for the type.
