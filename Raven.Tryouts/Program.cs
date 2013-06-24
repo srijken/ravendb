@@ -17,6 +17,53 @@ class Program
 			//AddItem(session);
 			session.SaveChanges();
 		}
+
+
+		//var json = "{'Grade': 'a', 'Val': 2, 'Students': [{'Name': '1', 'Use': true }]}";
+
+		//var defaultRavenContractResolver = new DefaultRavenContractResolver(true);
+		//var jsonSerializer = new JsonSerializer
+		//{
+		//	Formatting = Formatting.Indented,
+		//	ContractResolver = defaultRavenContractResolver
+		//};
+
+		//var dic = new Dictionary<object, Dictionary<string, JToken>>(ObjectReferenceEqualityComparer<object>.Default);
+
+		//jsonSerializer.BeforeClosingObject += (o, writer) =>
+		//{
+		//	Dictionary<string, JToken> value;
+		//	if (dic.TryGetValue(o, out value) == false)
+		//		return;
+
+		//	foreach (var item in value)
+		//	{
+		//		writer.WritePropertyName(item.Key);
+		//		if (item.Value == null)
+		//			writer.WriteNull();
+		//		else
+		//			item.Value.WriteTo(writer);
+		//	}
+		//};
+
+		//using (defaultRavenContractResolver.RegisterForExtensionData((o, key, value) =>
+		//{
+		//	Dictionary<string, JToken> dictionary;
+		//	if (dic.TryGetValue(o, out dictionary) == false)
+		//	{
+		//		dic[o] = dictionary = new Dictionary<string, JToken>();
+		//	}
+		//	dictionary[key] = value;
+		//	Console.WriteLine(key + " " + value);
+		//}))
+		//{
+		//	var x = jsonSerializer.Deserialize<Class>(new JsonTextReader(new StringReader(json)));
+		//	x.Students.Insert(0, new Person { Name = "123" });
+
+		//	Console.WriteLine(dic.ContainsKey(x));
+
+		//	jsonSerializer.Serialize(Console.Out, x);
+		//}
 	}
 
 	private static void AddItem(IDocumentSession session)

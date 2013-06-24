@@ -51,12 +51,15 @@ namespace Raven.Imports.Newtonsoft.Json.Serialization
     private readonly List<object> _serializeStack = new List<object>();
     private JsonSerializerProxy _internalSerializer;
 
-    public JsonSerializerInternalWriter(JsonSerializer serializer)
+	Action<object, JsonWriter> beforeClosingObject;
+
+    public JsonSerializerInternalWriter(JsonSerializer serializer, Action<object, JsonWriter> beforeClosingObject)
       : base(serializer)
     {
+	    this.beforeClosingObject = beforeClosingObject;
     }
 
-    public void Serialize(JsonWriter jsonWriter, object value, Type objectType)
+	  public void Serialize(JsonWriter jsonWriter, object value, Type objectType)
     {
       if (jsonWriter == null)
         throw new ArgumentNullException("jsonWriter");
@@ -393,7 +396,10 @@ namespace Raven.Imports.Newtonsoft.Json.Serialization
         }
       }
 
-      writer.WriteEndObject();
+	  if (beforeClosingObject != null)
+		  beforeClosingObject(value, writer);
+
+	  writer.WriteEndObject();
 
       _serializeStack.RemoveAt(_serializeStack.Count - 1);
 
