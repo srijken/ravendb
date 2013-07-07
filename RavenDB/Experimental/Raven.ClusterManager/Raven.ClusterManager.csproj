@@ -78,7 +78,7 @@
     <None Include="Assets\scripts\vendor\jquery\jquery.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Raven.Abstractions\Raven.Abstractions.csproj">
+    <ProjectReference Include="..\..\Shared\Raven.Abstractions\Raven.Abstractions.csproj">
       <Project>{41AC479E-1EB2-4D23-AAF2-E4C8DF1BC2BA}</Project>
       <Name>Raven.Abstractions</Name>
     </ProjectReference>
