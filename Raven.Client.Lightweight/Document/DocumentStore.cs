@@ -6,8 +6,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Security;
+using Raven.Abstractions.Connection;
 using Raven.Abstractions.Data;
 using Raven.Abstractions.Extensions;
 using Raven.Abstractions.OAuth;
@@ -19,20 +22,16 @@ using Raven.Client.Extensions;
 using Raven.Client.Connection.Async;
 using System.Threading.Tasks;
 using Raven.Client.Document.Async;
+using Raven.Client.Util;
 
 #if SILVERLIGHT
 using System.Net.Browser;
 using Raven.Client.Silverlight.Connection;
-using Raven.Client.Util;
-
 #elif NETFX_CORE
 using System.Collections.Concurrent;
-using Raven.Client.Util;
 using Raven.Client.WinRT.Connection;
 #else
 using Raven.Client.Document.DTC;
-using Raven.Client.Util;
-
 #endif
 
 
@@ -544,7 +543,7 @@ namespace Raven.Client.Document
 
 			Conventions.HandleUnauthorizedResponseAsync = unauthorizedResponse =>
 			{
-				var oauthSource = unauthorizedResponse.Headers["OAuth-Source"];
+				var oauthSource = unauthorizedResponse.Headers.GetFirstValue("OAuth-Source");
 
 				if (string.IsNullOrEmpty(oauthSource) == false &&
 					oauthSource.EndsWith("/OAuth/API-Key", StringComparison.CurrentCultureIgnoreCase) == false)
@@ -585,12 +584,31 @@ namespace Raven.Client.Document
 			}
 		}
 
-		private void AssertForbiddenCredentialSupportWindowsAuth(HttpWebResponse response)
+		private void AssertUnauthorizedCredentialSupportWindowsAuth(HttpResponseMessage response)
 		{
 			if (Credentials == null)
 				return;
 
-			var requiredAuth = response.Headers["Raven-Required-Auth"];
+			var authHeaders = response.Headers.GetFirstValue("WWW-Authenticate");
+			if (authHeaders == null ||
+				(authHeaders.Contains("NTLM") == false && authHeaders.Contains("Negotiate") == false)
+				)
+			{
+				// we are trying to do windows auth, but we didn't get the windows auth headers
+				throw new SecurityException(
+					"Attempted to connect to a RavenDB Server that requires authentication using Windows credentials," + Environment.NewLine
+					+ " but either wrong credentials where entered or the specified server does not support Windows authentication." +
+					Environment.NewLine +
+					"If you are running inside IIS, make sure to enable Windows authentication.");
+			}
+		}
+
+		private void AssertForbiddenCredentialSupportWindowsAuth(HttpResponseMessage response)
+		{
+			if (Credentials == null)
+				return;
+
+			var requiredAuth = response.Headers.GetFirstValue("Raven-Required-Auth");
 			if (requiredAuth == "Windows")
 			{
 				// we are trying to do windows auth, but we didn't get the windows auth headers
@@ -636,14 +654,19 @@ namespace Raven.Client.Document
 #endif
 
 #if SILVERLIGHT
+			WebRequest.RegisterPrefix("http://", WebRequestCreator.ClientHttp);
+			WebRequest.RegisterPrefix("https://", WebRequestCreator.ClientHttp);
+			
 			// required to ensure just a single auth dialog
 			var task = jsonRequestFactory.CreateHttpJsonRequest(new CreateHttpJsonRequestParams(null, (Url + "/docs?pageSize=0").NoCache(), "GET", credentials, Conventions))
 				.ExecuteRequestAsync();
+			
 			jsonRequestFactory.ConfigureRequest += (sender, args) =>
 			{
 				args.JsonRequest.WaitForTask = task;
 			};
 #endif
+
 			asyncDatabaseCommandsGenerator = () =>
 			{
 				var asyncServerClient = new AsyncServerClient(Url, Conventions, Credentials, jsonRequestFactory, currentSessionId, GetReplicationInformerForDatabase, null, listeners.ConflictListeners);
@@ -707,8 +730,7 @@ namespace Raven.Client.Document
 		{
 			AssertInitialized();
 
-			return databaseChanges.GetOrAdd(database ?? DefaultDatabase,
-				CreateDatabaseChanges);
+			return databaseChanges.GetOrAdd(database ?? DefaultDatabase, CreateDatabaseChanges);
 		}
 
 		protected virtual IDatabaseChanges CreateDatabaseChanges(string database)

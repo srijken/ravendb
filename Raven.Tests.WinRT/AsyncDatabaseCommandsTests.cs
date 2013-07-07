@@ -26,7 +26,8 @@ namespace Raven.Tests.WinRT
 				}
 
 				var documents = await store.AsyncDatabaseCommands.ForDatabase(dbname).GetDocumentsAsync(0, 25);
-				Assert.AreEqual(3, documents.Length);
+				// 4 because we have also the HiLo document.
+				Assert.AreEqual(4, documents.Length);
 			}
 		}
 
@@ -85,7 +86,7 @@ namespace Raven.Tests.WinRT
 		[TestMethod]
 		public async Task CanGetDeleteADocumentById()
 		{
-			var dbname = GenerateNewDatabaseName("AsyncDatabaseCommandsTests.CanGetDeleteADocumentById");
+			var dbname = GenerateNewDatabaseName();
 			using (var store = NewDocumentStore())
 			{
 				await store.AsyncDatabaseCommands.Admin.EnsureDatabaseExistsAsync(dbname);
@@ -124,11 +125,11 @@ namespace Raven.Tests.WinRT
 				}
 
 				var documents = await store.AsyncDatabaseCommands.ForDatabase(dbname).GetDocumentsAsync(0, 25);
-				Assert.AreEqual(3, documents.Length);
+				Assert.AreEqual(4, documents.Length);
 
 				await store.AsyncDatabaseCommands.ForDatabase(dbname).DeleteDocumentAsync(documents[0].Key);
 				documents = await store.AsyncDatabaseCommands.ForDatabase(dbname).GetDocumentsAsync(0, 25);
-				Assert.AreEqual(2, documents.Length);
+				Assert.AreEqual(3, documents.Length);
 			}
 		}
 	}

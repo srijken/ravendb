@@ -951,16 +951,11 @@ namespace Raven.Client.Connection
 
                 if (httpWebResponse.StatusCode == HttpStatusCode.BadRequest)
                 {
-                    var error = e.TryReadErrorResponseObject(
-                        new { Error = "", Message = "" });
+                    var error = e.TryReadErrorResponseObject(new { Error = "", Message = "" });
+	                if (error == null)
+		                throw;
 
-                    if (error == null)
-                    {
-                        throw;
-                    }
-
-                    var compilationException = new TransformCompilationException(error.Message);
-
+	                var compilationException = new TransformCompilationException(error.Message);
                     throw compilationException;
                 }
 
@@ -1292,7 +1287,7 @@ namespace Raven.Client.Connection
 				path += "&metadata-only=true";
 			if (includes != null && includes.Length > 0)
 			{
-				path += string.Join("&", includes.Select(x => "include=" + x).ToArray());
+				path += "&" + string.Join("&", includes.Select(x => "include=" + x).ToArray());
 			}
 	        if (!string.IsNullOrEmpty(transformer))
 	            path += "&transformer=" + transformer;
@@ -1595,6 +1590,11 @@ namespace Raven.Client.Connection
 					throw;
 				}
 
+				// Be compitable with the resopnse from v2.0 server
+				var serverBuild = request.ResponseHeaders.GetAsInt("Raven-Server-Build");
+				if (serverBuild < 2500)
+					return null;
+
 				return new Operation(this, jsonResponse.Value<long>("OperationId"));
 			});
 		}
@@ -1791,7 +1791,6 @@ namespace Raven.Client.Connection
 				new CreateHttpJsonRequestParams(this, serverUrl + "/docs/" + key, "HEAD", credentials, convention)
 					.AddOperationHeaders(OperationsHeaders))
 					.AddReplicationStatusHeaders(Url, serverUrl, replicationInformer, convention.FailoverBehavior, HandleReplicationStatusChanges);
-
 
 			try
 			{

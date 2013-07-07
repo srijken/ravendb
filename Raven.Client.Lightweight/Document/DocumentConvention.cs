@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters;
 using System.Text;
@@ -228,7 +229,7 @@ namespace Raven.Client.Document
 		/// <returns></returns>
 		public static string GenerateDocumentKeyUsingIdentity(DocumentConvention conventions, object entity)
 		{
-			return conventions.FindTypeTagName(entity.GetType()).ToLower() + "/";
+			return conventions.FindTypeTagName(entity.GetType()) + "/";
 		}
 
 		private static IDictionary<Type, string> cachedDefaultTypeTagNames = new Dictionary<Type, string>();
@@ -553,9 +554,7 @@ namespace Raven.Client.Document
 						new JsonNumericConverter<double>(double.TryParse),
 						new JsonNumericConverter<short>(short.TryParse),
 						new JsonMultiDimensionalArrayConverter(),
-#if !SILVERLIGHT
 						new JsonDynamicConverter()
-#endif
 					}
 			};
 
@@ -605,13 +604,13 @@ namespace Raven.Client.Document
 		/// Begins handling of unauthenticated responses, usually by authenticating against the oauth server
 		/// in async manner
 		/// </summary>
-		public Func<HttpWebResponse, Task<Action<HttpWebRequest>>> HandleUnauthorizedResponseAsync { get; set; }
+		public Func<HttpResponseMessage, Task<Action<HttpWebRequest>>> HandleUnauthorizedResponseAsync { get; set; }
 
 		/// <summary>
 		/// Begins handling of forbidden responses
 		/// in async manner
 		/// </summary>
-		public Func<HttpWebResponse, Task<Action<HttpWebRequest>>> HandleForbiddenResponseAsync { get; set; }
+		public Func<HttpResponseMessage, Task<Action<HttpWebRequest>>> HandleForbiddenResponseAsync { get; set; }
 
 		/// <summary>
 		/// When RavenDB needs to convert between a string id to a value type like int or guid, it calls

@@ -42,7 +42,7 @@ namespace Raven.Client.Document
 		event Action<string> Report;
 	}
 
-	public class RemoteBulkInsertOperation : ILowLevelBulkInsertOperation
+	public class RemoteBulkInsertOperation : ILowLevelBulkInsertOperation, IObserver<BulkInsertChangeNotification>
 	{
 		private CancellationTokenSource cancellationTokenSource;
 
@@ -91,13 +91,7 @@ namespace Raven.Client.Document
 		{
 			changes
 				.ForBulkInsert(OperationId)
-				.Subscribe(change =>
-				{
-					if (change.Type == DocumentChangeTypes.BulkInsertError)
-					{
-						cancellationTokenSource.Cancel();
-					}
-				});
+				.Subscribe(this);
 		}
 #endif
 
@@ -162,7 +156,6 @@ namespace Raven.Client.Document
 #else
 			var request = operationClient.CreateRequest(operationUrl + "&op=generate-single-use-auth-token", "POST",
 														disableRequestCompression: true);
-			request.webRequest.ContentLength = 0;
 
 			return request.ReadResponseJsonAsync();
 #endif
@@ -176,7 +169,6 @@ namespace Raven.Client.Document
 			var request = operationClient.CreateRequest(operationUrl + "&op=generate-single-use-auth-token", "POST", disableRequestCompression: true);
 #endif
             request.DisableAuthentication();
-			request.webRequest.ContentLength = 0;
 			request.AddOperationHeader("Single-Use-Auth-Token", token);
 			var result = await request.ReadResponseJsonAsync();
 			return result.Value<string>("Token");
@@ -369,6 +361,22 @@ namespace Raven.Client.Document
 			var onReport = Report;
 			if (onReport != null)
 				onReport(string.Format(format, args));
+		}
+
+		public void OnNext(BulkInsertChangeNotification value)
+		{
+			if (value.Type == DocumentChangeTypes.BulkInsertError)
+			{
+				cancellationTokenSource.Cancel();
+			}
+		}
+
+		public void OnError(Exception error)
+		{
+		}
+
+		public void OnCompleted()
+		{
 		}
 	}
 }
