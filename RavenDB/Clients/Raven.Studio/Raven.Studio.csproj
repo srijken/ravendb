@@ -213,55 +213,55 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Bundles\Raven.Bundles.Authorization\Model\AuthorizationRole.cs">
+    <Compile Include="..\..\Bundles\Raven.Bundles.Authorization\Model\AuthorizationRole.cs">
       <Link>Features\Bundles\AuthorizationRole.cs</Link>
     </Compile>
-    <Compile Include="..\Bundles\Raven.Bundles.Authorization\Model\AuthorizationUser.cs">
+    <Compile Include="..\..\Bundles\Raven.Bundles.Authorization\Model\AuthorizationUser.cs">
       <Link>Features\Bundles\AuthorizationUser.cs</Link>
     </Compile>
-    <Compile Include="..\Bundles\Raven.Bundles.Authorization\Model\IPermission.cs">
+    <Compile Include="..\..\Bundles\Raven.Bundles.Authorization\Model\IPermission.cs">
       <Link>Features\Bundles\IPermission.cs</Link>
     </Compile>
-    <Compile Include="..\Bundles\Raven.Bundles.Authorization\Model\OperationPermission.cs">
+    <Compile Include="..\..\Bundles\Raven.Bundles.Authorization\Model\OperationPermission.cs">
       <Link>Features\Bundles\OperationPermission.cs</Link>
     </Compile>
-    <Compile Include="..\CommonAssemblyInfo.cs">
+    <Compile Include="..\..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Connection\CountingStream.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Connection\CountingStream.cs">
       <Link>Imports\Connection\CountingStream.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Json\ConflictsResolver.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Json\ConflictsResolver.cs">
       <Link>Infrastructure\ConflictsResolver.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Smuggler\ISmugglerApi.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Smuggler\ISmugglerApi.cs">
       <Link>Imports\Smuggler\ISmugglerApi.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Smuggler\SmugglerAction.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Smuggler\SmugglerAction.cs">
       <Link>Imports\Smuggler\SmugglerAction.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Smuggler\SmugglerApiBase.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Smuggler\SmugglerApiBase.cs">
       <Link>Imports\Smuggler\SmugglerApiBase.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Smuggler\SmugglerOptions.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Smuggler\SmugglerOptions.cs">
       <Link>Imports\Smuggler\SmugglerOptions.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Util\ComparableByteArray.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Util\ComparableByteArray.cs">
       <Link>Imports\Util\ComparableByteArray.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Util\DocumentHelpers.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Util\DocumentHelpers.cs">
       <Link>Features\Documents\DocumentHelpers.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Util\EtagUtil.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Util\EtagUtil.cs">
       <Link>Imports\Util\EtagUtil.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Database\Bundles\Replication\Data\SourceReplicationInformation.cs">
+    <Compile Include="..\..\Server\Raven.Database\Bundles\Replication\Data\SourceReplicationInformation.cs">
       <Link>Features\Bundles\SourceReplicationInformation.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Database\Bundles\Versioning\Data\VersioningConfiguration.cs">
+    <Compile Include="..\..\Server\Raven.Database\Bundles\Versioning\Data\VersioningConfiguration.cs">
       <Link>Features\Bundles\VersioningConfiguration.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Database\Server\Security\Windows\WindowsAuthDocument.cs">
+    <Compile Include="..\..\Server\Raven.Database\Server\Security\Windows\WindowsAuthDocument.cs">
       <Link>Features\Bundles\WindowsAuthDocument.cs</Link>
     </Compile>
     <Compile Include="App.xaml.cs">

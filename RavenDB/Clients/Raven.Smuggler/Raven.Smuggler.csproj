@@ -61,13 +61,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\CommonAssemblyInfo.cs">
+    <Compile Include="..\..\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="..\raven.client.lightweight\extensions\MultiDatabase.cs">
       <Link>Imports\MultiDatabase.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Server\FromMono\Options.cs">
+    <Compile Include="..\..\Server\Raven.Server\FromMono\Options.cs">
       <Link>FromMono\Options.cs</Link>
     </Compile>
     <Compile Include="Imports\SmugglerJintHelper.cs" />
@@ -75,12 +75,12 @@
     <Compile Include="SmugglerApi.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\Raven.Server\favicon.ico">
+    <Content Include="..\..\Server\Raven.Server\favicon.ico">
       <Link>favicon.ico</Link>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Raven.Database\RavenDB.snk">
+    <None Include="..\..\Server\Raven.Database\RavenDB.snk">
       <Link>RavenDB.snk</Link>
     </None>
     <None Include="app.config" />
