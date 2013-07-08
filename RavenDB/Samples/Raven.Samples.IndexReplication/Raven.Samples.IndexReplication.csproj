@@ -22,17 +22,17 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\build\</OutputPath>
+    <OutputPath>..\..\bin\debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <WarningLevel>2</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\build\</OutputPath>
+    <OutputPath>..\..\bin\release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -61,13 +61,13 @@
       <Project>{2728bba7-5142-445e-baa5-142a25e0666d}</Project>
       <Name>Raven.Bundles.IndexReplication</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Raven.Abstractions\Raven.Abstractions.csproj">
-      <Project>{41AC479E-1EB2-4D23-AAF2-E4C8DF1BC2BA}</Project>
-      <Name>Raven.Abstractions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Raven.Client.Lightweight\Raven.Client.Lightweight.csproj">
-      <Project>{4E087ECB-E7CA-4891-AC3C-3C76702715B6}</Project>
+    <ProjectReference Include="..\..\Clients\Raven.Client.Lightweight\Raven.Client.Lightweight.csproj">
+      <Project>{4e087ecb-e7ca-4891-ac3c-3c76702715b6}</Project>
       <Name>Raven.Client.Lightweight</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Shared\Raven.Abstractions\Raven.Abstractions.csproj">
+      <Project>{41ac479e-1eb2-4d23-aaf2-e4c8df1bc2ba}</Project>
+      <Name>Raven.Abstractions</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

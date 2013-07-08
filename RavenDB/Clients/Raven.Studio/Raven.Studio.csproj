@@ -1618,7 +1618,7 @@
   </ProjectExtensions>
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetDir)$(TargetName).xap" "$(SolutionDir)\Server\Raven.Database\Server\WebUI"</PostBuildEvent>
+    <PostBuildEvent>copy "$(TargetDir)$(TargetName).xap" "$(ProjectDir)\..\..\Server\Raven.Database\Server\WebUI"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\Microsoft.Bcl.Build.1.0.7\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.7\tools\Microsoft.Bcl.Build.targets')" />
 </Project>

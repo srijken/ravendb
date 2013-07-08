@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\build\</OutputPath>
+    <OutputPath>..\bin\debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -26,7 +26,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\build\</OutputPath>
+    <OutputPath>..\bin\release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -51,7 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Raven.Database\Util\PerformanceCountersUtils.cs">
+    <Compile Include="..\..\Server\Raven.Database\Util\PerformanceCountersUtils.cs">
       <Link>PerformanceCountersUtils.cs</Link>
     </Compile>
     <Compile Include="Infrastructure\IIS\IIS6Manager.cs" />
@@ -68,7 +68,7 @@
     <Content Include="CustomAction.config" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\Raven.Database\Commercial\RavenDB.public">
+    <EmbeddedResource Include="..\..\Server\Raven.Database\Commercial\RavenDB.public">
       <Link>RavenDB.public</Link>
     </EmbeddedResource>
   </ItemGroup>

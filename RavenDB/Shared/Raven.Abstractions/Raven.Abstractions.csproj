@@ -287,7 +287,7 @@
     <EmbeddedResource Include="..\Imports\Newtonsoft.Json\Src\Newtonsoft.Json\Dynamic.snk">
       <Link>Imports\Newtonsoft.Json\Dynamic.snk</Link>
     </EmbeddedResource>
-    <None Include="..\Raven.Database\RavenDB.snk">
+    <None Include="..\..\Server\Raven.Database\RavenDB.snk">
       <Link>RavenDB.snk</Link>
     </None>
   </ItemGroup>

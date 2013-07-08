@@ -83,21 +83,21 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <WixExtension Include="WixNetFxExtension">
-      <HintPath>..\Tools\WiX\3.7\WixNetFxExtension.dll</HintPath>
-      <Name>WixNetFxExtension</Name>
-    </WixExtension>
-    <WixExtension Include="WixIIsExtension">
-      <HintPath>..\..\..\..\Program Files (x86)\WiX Toolset v3.7\bin\WixIIsExtension.dll</HintPath>
-      <Name>WixIIsExtension</Name>
-    </WixExtension>
     <WixExtension Include="WixUtilExtension">
-      <HintPath>..\..\..\..\Program Files (x86)\WiX Toolset v3.7\bin\WixUtilExtension.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\WiX Toolset v3.7\bin\WixUtilExtension.dll</HintPath>
       <Name>WixUtilExtension</Name>
     </WixExtension>
     <WixExtension Include="WixUIExtension">
-      <HintPath>..\Tools\WiX\3.7\WixUIExtension.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\WiX Toolset v3.7\bin\WixUIExtension.dll</HintPath>
       <Name>WixUIExtension</Name>
+    </WixExtension>
+    <WixExtension Include="WixIIsExtension">
+      <HintPath>..\..\..\..\..\Program Files (x86)\WiX Toolset v3.7\bin\WixIIsExtension.dll</HintPath>
+      <Name>WixIIsExtension</Name>
+    </WixExtension>
+    <WixExtension Include="WixNetFxExtension">
+      <HintPath>..\..\Tools\WiX\3.7\WixNetFxExtension.dll</HintPath>
+      <Name>WixNetFxExtension</Name>
     </WixExtension>
   </ItemGroup>
   <ItemGroup>
@@ -125,7 +125,7 @@
     <Folder Include="UI\Service" />
   </ItemGroup>
   <PropertyGroup>
-    <WixToolPath>..\tools\WiX\3.7\</WixToolPath>
+    <WixToolPath>..\..\tools\WiX\3.7\</WixToolPath>
     <WixTargetsPath>$(WixToolPath)Wix.targets</WixTargetsPath>
     <WixTasksPath>wixtasks.dll</WixTasksPath>
   </PropertyGroup>

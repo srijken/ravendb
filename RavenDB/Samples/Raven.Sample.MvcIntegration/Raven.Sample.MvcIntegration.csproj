@@ -28,7 +28,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\build\</OutputPath>
+    <OutputPath>..\..\bin\debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -37,7 +37,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\build\</OutputPath>
+    <OutputPath>..\..\bin\release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -123,17 +123,17 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Raven.Abstractions\Raven.Abstractions.csproj">
-      <Project>{41ac479e-1eb2-4d23-aaf2-e4c8df1bc2ba}</Project>
-      <Name>Raven.Abstractions</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Raven.Client.Lightweight\Raven.Client.Lightweight.csproj">
+    <ProjectReference Include="..\..\Clients\Raven.Client.Lightweight\Raven.Client.Lightweight.csproj">
       <Project>{4e087ecb-e7ca-4891-ac3c-3c76702715b6}</Project>
       <Name>Raven.Client.Lightweight</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Raven.Client.MvcIntegration\Raven.Client.MvcIntegration.csproj">
+    <ProjectReference Include="..\..\Clients\Raven.Client.MvcIntegration\Raven.Client.MvcIntegration.csproj">
       <Project>{aa580048-17c7-4b1e-aa3a-321157cf3511}</Project>
       <Name>Raven.Client.MvcIntegration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Shared\Raven.Abstractions\Raven.Abstractions.csproj">
+      <Project>{41ac479e-1eb2-4d23-aaf2-e4c8df1bc2ba}</Project>
+      <Name>Raven.Abstractions</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

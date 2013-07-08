@@ -273,7 +273,7 @@
     <Compile Include="WhereEqualsParams.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Raven.Database\RavenDB.snk">
+    <None Include="..\..\Server\Raven.Database\RavenDB.snk">
       <Link>RavenDB.snk</Link>
     </None>
     <None Include="packages.config" />
