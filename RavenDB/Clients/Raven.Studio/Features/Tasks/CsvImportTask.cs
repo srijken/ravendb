@@ -67,9 +67,10 @@ namespace Raven.Studio.Features.Tasks
 
                 var totalCount = 0;
                 var batch = new List<RavenJObject>();
-                var columns = header.Values.Where(x => x.StartsWith("@") == false).ToArray();
+                var columns = header.Where(x => x.StartsWith("@") == false).ToArray();
 
-                foreach (var record in csvReader.DataRecords)
+	            DataRecord record;
+                while((record = csvReader.ReadDataRecord()) != null)
                 {
                     batch.Clear();
                     var document = new RavenJObject();

@@ -62,7 +62,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>..\Raven.Database\RavenDB.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\..\Server\Raven.Database\RavenDB.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Esent.Interop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b93b4ad6c4b80595, processorArchitecture=MSIL">
@@ -70,34 +70,36 @@
       <HintPath>..\SharedLibs\Esent.Interop.dll</HintPath>
     </Reference>
     <Reference Include="FizzWare.NBuilder">
-      <HintPath>..\packages\NBuilder.3.0.1.1\lib\FizzWare.NBuilder.dll</HintPath>
+      <HintPath>..\..\packages\NBuilder.3.0.1.1\lib\FizzWare.NBuilder.dll</HintPath>
     </Reference>
     <Reference Include="GeoAPI, Version=1.7.4693.18483, Culture=neutral, PublicKeyToken=a1a0da7def465678, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\SharedLibs\GeoAPI.dll</HintPath>
     </Reference>
-    <Reference Include="ICSharpCode.NRefactory">
-      <HintPath>..\packages\ICSharpCode.NRefactory.5.2.0\lib\Net40\ICSharpCode.NRefactory.dll</HintPath>
+    <Reference Include="ICSharpCode.NRefactory, Version=5.0.0.0, Culture=neutral, PublicKeyToken=d4bfe873e7598c49, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\ICSharpCode.NRefactory.5.3.0\lib\Net40\ICSharpCode.NRefactory.dll</HintPath>
     </Reference>
-    <Reference Include="ICSharpCode.NRefactory.CSharp">
-      <HintPath>..\packages\ICSharpCode.NRefactory.5.2.0\lib\Net40\ICSharpCode.NRefactory.CSharp.dll</HintPath>
+    <Reference Include="ICSharpCode.NRefactory.CSharp, Version=5.0.0.0, Culture=neutral, PublicKeyToken=d4bfe873e7598c49, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\ICSharpCode.NRefactory.5.3.0\lib\Net40\ICSharpCode.NRefactory.CSharp.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.NRefactory.Xml">
-      <HintPath>..\packages\ICSharpCode.NRefactory.5.2.0\lib\Net40\ICSharpCode.NRefactory.Xml.dll</HintPath>
+      <HintPath>..\..\packages\ICSharpCode.NRefactory.5.3.0\lib\Net40\ICSharpCode.NRefactory.Xml.dll</HintPath>
     </Reference>
     <Reference Include="Jint.Raven, Version=0.9.2.0, Culture=neutral, PublicKeyToken=5fa384605d304122, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\SharedLibs\Jint.Raven.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
-      <HintPath>..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
+      <HintPath>..\..\packages\log4net.2.0.0\lib\net40-full\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Lucene.Net, Version=2.9.1.2, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\SharedLibs\Lucene.Net.dll</HintPath>
     </Reference>
     <Reference Include="Lucene.Net.Contrib.FastVectorHighlighter">
-      <HintPath>..\SharedLibs\Lucene.Net.Contrib.FastVectorHighlighter.dll</HintPath>
+      <HintPath>..\..\..\SharedLibs\Lucene.Net.Contrib.FastVectorHighlighter.dll</HintPath>
     </Reference>
     <Reference Include="Lucene.Net.Contrib.Spatial.NTS">
       <HintPath>..\SharedLibs\Lucene.Net.Contrib.Spatial.NTS.dll</HintPath>
@@ -107,27 +109,29 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\ReferenceAssemblies\v2.0\Microsoft.VisualStudio.DebuggerVisualizers.dll</HintPath>
     </Reference>
-    <Reference Include="Mono.Cecil">
-      <HintPath>..\packages\Mono.Cecil.0.9.5.3\lib\net40\Mono.Cecil.dll</HintPath>
+    <Reference Include="Mono.Cecil, Version=0.9.5.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil.Mdb">
-      <HintPath>..\packages\Mono.Cecil.0.9.5.3\lib\net40\Mono.Cecil.Mdb.dll</HintPath>
+      <HintPath>..\..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Mdb.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil.Pdb">
-      <HintPath>..\packages\Mono.Cecil.0.9.5.3\lib\net40\Mono.Cecil.Pdb.dll</HintPath>
+      <HintPath>..\..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Pdb.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil.Rocks">
-      <HintPath>..\packages\Mono.Cecil.0.9.5.3\lib\net40\Mono.Cecil.Rocks.dll</HintPath>
+      <HintPath>..\..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Rocks.dll</HintPath>
     </Reference>
     <Reference Include="NetTopologySuite, Version=1.13.4693.18484, Culture=neutral, PublicKeyToken=f580a05016ebada1, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\SharedLibs\NetTopologySuite.dll</HintPath>
     </Reference>
-    <Reference Include="NLog">
-      <HintPath>..\packages\NLog.2.0.0.2000\lib\net40\NLog.dll</HintPath>
+    <Reference Include="NLog, Version=2.0.1.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\NLog.2.0.1.2\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="Rhino.Mocks">
-      <HintPath>..\SharedLibs\Rhino.Mocks.dll</HintPath>
+      <HintPath>..\..\..\SharedLibs\Sources\managedesent-61618\External Components\Rhino.Mocks\Rhino.Mocks.dll</HintPath>
     </Reference>
     <Reference Include="Spatial4n.Core.NTS">
       <HintPath>..\SharedLibs\Spatial4n.Core.NTS.dll</HintPath>
@@ -143,19 +147,19 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Reactive.Core, Version=2.1.30214.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Rx-Core.2.1.30214.0\lib\Net45\System.Reactive.Core.dll</HintPath>
+      <HintPath>..\..\packages\Rx-Core.2.1.30214.0\lib\Net45\System.Reactive.Core.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.Interfaces, Version=2.1.30214.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Rx-Interfaces.2.1.30214.0\lib\Net45\System.Reactive.Interfaces.dll</HintPath>
+      <HintPath>..\..\packages\Rx-Interfaces.2.1.30214.0\lib\Net45\System.Reactive.Interfaces.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.Linq, Version=2.1.30214.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Rx-Linq.2.1.30214.0\lib\Net45\System.Reactive.Linq.dll</HintPath>
+      <HintPath>..\..\packages\Rx-Linq.2.1.30214.0\lib\Net45\System.Reactive.Linq.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.PlatformServices, Version=2.1.30214.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Rx-PlatformServices.2.1.30214.0\lib\Net45\System.Reactive.PlatformServices.dll</HintPath>
+      <HintPath>..\..\packages\Rx-PlatformServices.2.1.30214.0\lib\Net45\System.Reactive.PlatformServices.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.Core">
       <HintPath>..\packages\Rx-Core.2.1.30214.0\lib\Net40\System.Reactive.Core.dll</HintPath>
@@ -183,11 +187,11 @@
     <Reference Include="System.Xml" />
     <Reference Include="xunit, Version=1.9.1.1600, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\xunit.1.9.1\lib\net20\xunit.dll</HintPath>
+      <HintPath>..\..\packages\xunit.2.0.0-alpha-build1611\lib\net45\xunit.dll</HintPath>
     </Reference>
     <Reference Include="xunit.extensions, Version=1.9.1.1600, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\xunit.extensions.1.9.1\lib\net20\xunit.extensions.dll</HintPath>
+      <HintPath>..\..\packages\xunit.extensions.2.0.0-alpha-build1611\lib\net45\xunit.extensions.dll</HintPath>
     </Reference>
     <Reference Include="xunit.runner.msbuild">
       <HintPath>..\packages\xunit.1.9.1\lib\net20\xunit.runner.msbuild.dll</HintPath>
@@ -1415,11 +1419,11 @@
       <Project>{41ac479e-1eb2-4d23-aaf2-e4c8df1bc2ba}</Project>
       <Name>Raven.Abstractions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Raven.Client.Embedded\Raven.Client.Embedded.csproj">
+    <ProjectReference Include="..\..\Clients\Raven.Client.Embedded\Raven.Client.Embedded.csproj">
       <Project>{0F5287AD-37B3-4375-BA3E-3CED64B1FC5B}</Project>
       <Name>Raven.Client.Embedded</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Raven.Client.Lightweight\Raven.Client.Lightweight.csproj">
+    <ProjectReference Include="..\..\Clients\Raven.Client.Lightweight\Raven.Client.Lightweight.csproj">
       <Project>{4E087ECB-E7CA-4891-AC3C-3C76702715B6}</Project>
       <Name>Raven.Client.Lightweight</Name>
     </ProjectReference>
@@ -1445,7 +1449,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Raven.Database\RavenDB.snk">
+    <None Include="..\..\Server\Raven.Database\RavenDB.snk">
       <Link>RavenDB.snk</Link>
     </None>
     <None Include="App.config">

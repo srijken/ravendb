@@ -39,10 +39,10 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="xunit">
-      <HintPath>..\packages\xunit.1.9.1\lib\net20\xunit.dll</HintPath>
+      <HintPath>..\..\packages\xunit.2.0.0-alpha-build1611\lib\net45\xunit.dll</HintPath>
     </Reference>
     <Reference Include="xunit.extensions">
-      <HintPath>..\packages\xunit.extensions.1.9.1\lib\net20\xunit.extensions.dll</HintPath>
+      <HintPath>..\..\packages\xunit.extensions.2.0.0-alpha-build1611\lib\net45\xunit.extensions.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Choose>
@@ -62,7 +62,7 @@
       <Project>{41AC479E-1EB2-4D23-AAF2-E4C8DF1BC2BA}</Project>
       <Name>Raven.Abstractions</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Raven.Client.Lightweight\Raven.Client.Lightweight.csproj">
+    <ProjectReference Include="..\..\Clients\Raven.Client.Lightweight\Raven.Client.Lightweight.csproj">
       <Project>{4E087ECB-E7CA-4891-AC3C-3C76702715B6}</Project>
       <Name>Raven.Client.Lightweight</Name>
     </ProjectReference>
@@ -78,7 +78,7 @@
   <ItemGroup />
   <ItemGroup>
     <Compile Include="..\..\CommonAssemblyInfo.cs">
-      <Link>Properties\CommonAssemblyInfo.cs</Link>
+      <Link>Properties\CommonAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="BasicSessionApiTests.cs" />
     <Compile Include="AsyncDatabaseCommandsTests.cs" />

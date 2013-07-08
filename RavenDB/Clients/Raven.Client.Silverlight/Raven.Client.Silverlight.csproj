@@ -56,7 +56,7 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>..\Raven.Database\RavenDB.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\..\Server\Raven.Database\RavenDB.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -64,60 +64,59 @@
       <HintPath>..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\Microsoft.CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Threading.Tasks">
-      <HintPath>..\packages\Microsoft.Bcl.Async.1.0.16\lib\sl4\Microsoft.Threading.Tasks.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.Bcl.Async.1.0.16\lib\sl4\Microsoft.Threading.Tasks.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Threading.Tasks.Extensions">
-      <HintPath>..\packages\Microsoft.Bcl.Async.1.0.16\lib\sl4\Microsoft.Threading.Tasks.Extensions.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.Bcl.Async.1.0.16\lib\sl4\Microsoft.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Threading.Tasks.Extensions.Silverlight">
-      <HintPath>..\packages\Microsoft.Bcl.Async.1.0.16\lib\sl4\Microsoft.Threading.Tasks.Extensions.Silverlight.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.Bcl.Async.1.0.16\lib\sl4\Microsoft.Threading.Tasks.Extensions.Silverlight.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="mscorlib" />
-    <Reference Include="NLog">
-      <HintPath>..\packages\NLog.2.0.0.2000\lib\sl4\NLog.dll</HintPath>
-    </Reference>
     <Reference Include="System.ComponentModel.Composition, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\System.ComponentModel.Composition.dll</HintPath>
     </Reference>
-    <Reference Include="System.Net.Http, Version=1.5.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.Net.Http.2.1.10\lib\portable-net40+sl4+win8+wp71\System.Net.Http.dll</HintPath>
+    <Reference Include="System.IO">
+      <HintPath>..\..\packages\Microsoft.Bcl.1.1.0-beta\lib\sl5\System.IO.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http">
+      <HintPath>..\..\packages\Microsoft.Net.Http.2.2.3-beta\lib\portable-net40+sl4+win8+wp71\System.Net.Http.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http.Extensions, Version=1.5.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.Net.Http.2.1.10\lib\portable-net40+sl4+win8+wp71\System.Net.Http.Extensions.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.Net.Http.2.2.3-beta\lib\portable-net40+sl4+win8+wp71\System.Net.Http.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http.Primitives, Version=1.5.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Microsoft.Net.Http.2.1.10\lib\portable-net40+sl4+win8+wp71\System.Net.Http.Primitives.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.Net.Http.2.2.3-beta\lib\portable-net40+sl4+win8+wp71\System.Net.Http.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.Core, Version=2.1.30214.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Rx-Core.2.1.30214.0\lib\SL5\System.Reactive.Core.dll</HintPath>
+      <HintPath>..\..\packages\Rx-Core.2.1.30214.0\lib\SL5\System.Reactive.Core.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.Interfaces, Version=2.1.30214.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Rx-Interfaces.2.1.30214.0\lib\SL5\System.Reactive.Interfaces.dll</HintPath>
+      <HintPath>..\..\packages\Rx-Interfaces.2.1.30214.0\lib\SL5\System.Reactive.Interfaces.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.Linq, Version=2.1.30214.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Rx-Linq.2.1.30214.0\lib\SL5\System.Reactive.Linq.dll</HintPath>
+      <HintPath>..\..\packages\Rx-Linq.2.1.30214.0\lib\SL5\System.Reactive.Linq.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.PlatformServices, Version=2.1.30214.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Rx-PlatformServices.2.1.30214.0\lib\SL5\System.Reactive.PlatformServices.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Runtime">
-      <HintPath>..\packages\Microsoft.Bcl.1.0.19\lib\sl5\System.Runtime.dll</HintPath>
+      <HintPath>..\..\packages\Rx-PlatformServices.2.1.30214.0\lib\SL5\System.Reactive.PlatformServices.dll</HintPath>
     </Reference>
     <Reference Include="System.Reactive.Interfaces">
       <HintPath>..\packages\Rx-Interfaces.2.1.30214.0\lib\SL5\System.Reactive.Interfaces.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime">
+      <HintPath>..\..\packages\Microsoft.Bcl.1.1.0-beta\lib\sl5\System.Runtime.dll</HintPath>
+    </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Threading.Tasks">
-      <HintPath>..\packages\Microsoft.Bcl.1.0.19\lib\sl5\System.Threading.Tasks.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.Bcl.1.1.0-beta\lib\sl5\System.Threading.Tasks.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows" />
     <Reference Include="system" />
@@ -130,137 +129,137 @@
     <Compile Include="..\..\Shared\Raven.Abstractions\MissingFromBCL\WinRTCompetability.cs">
       <Link>Imports\MissingFromBCL\WinRTCompetability.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\*.cs" />
-    <Compile Include="..\Raven.Client.Lightweight\Bundles\MoreLikeThis\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\*.cs" />
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Bundles\MoreLikeThis\*.cs">
       <Link>Bundles\MoreLikeThis\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Bundles\Versioning\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Bundles\Versioning\*.cs">
       <Link>Bundles\Versioning\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Changes\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Changes\*.cs">
       <Link>Changes\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Connection\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Connection\*.cs">
       <Link>Connection\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Connection\Async\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Connection\Async\*.cs">
       <Link>Connection\Async\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Connection\Profiling\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Connection\Profiling\*.cs">
       <Link>Connection\Profiling\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Converters\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Converters\*.cs">
       <Link>Converters\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Document\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Document\*.cs">
       <Link>Document\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Document\Async\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Document\Async\*.cs">
       <Link>Document\Async\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Document\Batches\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Document\Batches\*.cs">
       <Link>Document\Batches\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Document\DTC\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Document\DTC\*.cs">
       <Link>Document\DTC\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Document\OAuth\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Document\OAuth\*.cs">
       <Link>Document\OAuth\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Document\SessionOperations\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Document\SessionOperations\*.cs">
       <Link>Document\SessionOperations\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Exceptions\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Exceptions\*.cs">
       <Link>Exeptions\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Extensions\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Extensions\*.cs">
       <Link>Extentions\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Indexes\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Indexes\*.cs">
       <Link>Indexes\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Linq\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Linq\*.cs">
       <Link>Linq\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Linq\Indexing\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Linq\Indexing\*.cs">
       <Link>Linq\Indexing\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Listeners\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Listeners\*.cs">
       <Link>Listeners\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\PublicExtensions\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\PublicExtensions\*.cs">
       <Link>PublicExtentions\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Shard\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Shard\*.cs">
       <Link>Shard\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Spatial\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Spatial\*.cs">
       <Link>Imports\Spatial\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.Lightweight\Util\*.cs">
+    <Compile Include="..\..\Clients\Raven.Client.Lightweight\Util\*.cs">
       <Link>Util\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Client.WinRT\MissingFromWinRT\ThreadSleep.cs">
+    <Compile Include="..\..\Clients\Raven.Client.WinRT\MissingFromWinRT\ThreadSleep.cs">
       <Link>Extentions\ThreadSleep.cs</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\*.cs">
       <Link>Abstructions\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Commands\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Commands\*.cs">
       <Link>Abstructions\Commands\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Connection\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Connection\*.cs">
       <Link>Abstructions\Connection\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Data\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Data\*.cs">
       <Link>Abstructions\Data\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Exceptions\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Exceptions\*.cs">
       <Link>Abstructions\Exeptions\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Extensions\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Extensions\*.cs">
       <Link>Abstructions\Extentions\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Extensions\Internal\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Extensions\Internal\*.cs">
       <Link>Abstructions\Extentions\Internal\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Indexing\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Indexing\*.cs">
       <Link>Abstructions\Indexing\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Json\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Json\*.cs">
       <Link>Abstructions\Json\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Json\Linq\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Json\Linq\*.cs">
       <Link>Abstructions\Json\Linq\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Json\Utilities\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Json\Utilities\*.cs">
       <Link>Abstructions\Json\Utilities\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Linq\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Linq\*.cs">
       <Link>Abstructions\Linq\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Logging\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Logging\*.cs">
       <Link>Abstructions\Logging\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Logging\LogProviders\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Logging\LogProviders\*.cs">
       <Link>Abstructions\Logging\LogProviders\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\MEF\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\MEF\*.cs">
       <Link>Abstructions\MEF\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\OAuth\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\OAuth\*.cs">
       <Link>Abstructions\OAuth\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Replication\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Replication\*.cs">
       <Link>Abstructions\Replication\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Smuggler\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Smuggler\*.cs">
       <Link>Abstructions\Smuggler\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Spatial\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Spatial\*.cs">
       <Link>Abstructions\Spatial\%(FileName)</Link>
     </Compile>
-    <Compile Include="..\Raven.Abstractions\Util\*.cs">
+    <Compile Include="..\..\Shared\Raven.Abstractions\Util\*.cs">
       <Link>Abstructions\Util\%(FileName)</Link>
     </Compile>
     <Compile Include="..\..\CommonAssemblyInfo.cs">

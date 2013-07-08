@@ -40,17 +40,17 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>..\Raven.Server\favicon.ico</ApplicationIcon>
+    <ApplicationIcon>..\..\Server\Raven.Server\favicon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>..\Raven.Database\RavenDB.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\..\Server\Raven.Database\RavenDB.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Jint.Raven">
-      <HintPath>..\SharedLibs\Jint.Raven.dll</HintPath>
+      <HintPath>..\..\..\SharedLibs\Jint.Raven.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

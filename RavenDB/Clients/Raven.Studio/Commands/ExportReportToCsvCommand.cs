@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -29,11 +30,12 @@ namespace Raven.Studio.Commands
              using (stream)
              using (var writer = new CsvWriter(stream))
              {
-                 writer.WriteHeaderRecord(new[] {"Key"}.Concat(model.ValueCalculations.Select(v => v.Header)));
+				writer.WriteRecord(new[] { "Key" }.Concat(model.ValueCalculations.Select(v => v.Header)));
 
                  foreach (var reportRow in model.Results)
                  {
-                     writer.WriteDataRecord(new object[] { reportRow.Key}.Concat(model.ValueCalculations.Select(v => (object)reportRow.Values[v.Header])));
+	                 var row = reportRow;
+	                 writer.WriteRecord(new[] { row.Key }.Concat(model.ValueCalculations.Select(v => row.Values[v.Header].ToString(CultureInfo.InvariantCulture))));
                  }
              }
         }
