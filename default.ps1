@@ -3,11 +3,11 @@ Include ".\build_utils.ps1"
 properties {
 	$base_dir  = resolve-path .
 	$lib_dir = "$base_dir\SharedLibs"
-	$build_dir = "$base_dir\build"
+	$ravendb_dir = "$base_dir\RavenDB"
+	$output_dir = "$base_dir\Output"
 	$packages_dir = "$base_dir\packages"
-	$buildartifacts_dir = "$build_dir\"
 	$sln_file = "$base_dir\zzz_RavenDB_Release.sln"
-	$version = "2.5"
+	$version = "3.0"
 	$tools_dir = "$base_dir\Tools"
 	$release_dir = "$base_dir\Release"
 	$uploader = "..\Uploader\S3Uploader.exe"
@@ -17,50 +17,48 @@ properties {
         "Raven.Abstractions.???", 
         (Get-DependencyPackageFiles 'NLog.2'), 
         (Get-DependencyPackageFiles Microsoft.Web.Infrastructure), 
-        "Jint.Raven.???",
-				"Lucene.Net.???",
-				"Microsoft.Data.Edm.???",
-				"Microsoft.WindowsAzure.Storage.???",
-				"Microsoft.Data.OData.???",
-				"Microsoft.WindowsAzure.ConfigurationManager.???",
-				"Lucene.Net.Contrib.Spatial.NTS.???", "Spatial4n.Core.NTS.???", "GeoAPI.dll", "NetTopologySuite.dll", "PowerCollections.dll", 
-				"ICSharpCode.NRefactory.???", "ICSharpCode.NRefactory.CSharp.???", "Mono.Cecil.???", 
-				"Esent.Interop.???", 
-				"Raven.Database.???", 
-				"AWS.Extensions.???", "AWSSDK.???" ,
-				"Microsoft.CompilerServices.AsyncTargetingPack.Net4.???" ) 
+        "SharedLibs\Jint.Raven.???", "SharedLibs\Lucene.Net.???", "packages\Microsoft.Data.Edm.???", "packages\Microsoft.WindowsAzure.Storage.???",
+		"packages\Microsoft.Data.OData.???", "packages\Microsoft.WindowsAzure.ConfigurationManager.???", "SharedLibs\Lucene.Net.Contrib.Spatial.NTS.???", 
+		"SharedLibs\Spatial4n.Core.NTS.???", "SharedLibs\GeoAPI.dll", "SharedLibs\NetTopologySuite.dll", "SharedLibs\PowerCollections.dll", 
+		"packages\ICSharpCode.NRefactory.???", "packages\ICSharpCode.NRefactory.CSharp.???", "packages\Mono.Cecil.???", "packages\Esent.Interop.???", 
+		"RavenDB\Server\Raven.Database.???", "SharedLibs\AWS.Extensions.???", "SharedLibs\AWSSDK.???" , "packages\Microsoft.CompilerServices.AsyncTargetingPack.Net4.???" )
 	
-	$web_dlls = ( @( "Raven.Web.???"  ) + $core_db_dlls) |
+	$web_dlls = ( @( "RavenDB\Server\Raven.Web\bin\release\Raven.Web.???"  ) + $core_db_dlls) |
 		ForEach-Object { 
 			if ([System.IO.Path]::IsPathRooted($_)) { return $_ }
-			return "$build_dir\web\$_"
+			return "$base_dir\$_"
 		}
 	
-	$web_files = @("..\DefaultConfigs\web.config", "..\DefaultConfigs\NLog.Ignored.config" )
-	
-	$server_files = ( @( "Raven.Server.???", "..\DefaultConfigs\NLog.Ignored.config") + $core_db_dlls ) |
+	$web_files = @("RavenDB\Shared\DefaultConfigs\web.config", "RavenDB\Shared\DefaultConfigs\NLog.Ignored.config" )
+
+	$server_files = ( @( "RavenDB\Server\Raven.Server\bin\release\Raven.Server.???", "RavenDB\Shared\DefaultConfigs\NLog.Ignored.config") + $core_db_dlls ) |
 		ForEach-Object { 
 			if ([System.IO.Path]::IsPathRooted($_)) { return $_ }
-			return "$build_dir\$_"
+			return "$base_dir\$_"
 		}
 		
-	$client_dlls = @( (Get-DependencyPackageFiles 'NLog.2'), "Raven.Client.MvcIntegration.???", 
-					"Raven.Abstractions.???", "Raven.Client.Lightweight.???", "Microsoft.CompilerServices.AsyncTargetingPack.Net4.???") |
+	$client_dlls = @( (Get-DependencyPackageFiles 'NLog.2'), "RavenDB\Clients\Raven.Client.MvcIntegration\bin\release\Raven.Client.MvcIntegration.???", 
+					"RavenDB\Shared\Raven.Abstractions\bin\release\Raven.Abstractions.???", 
+					"RavenDB\Clients\Raven.Client.Lightweight\bin\release\Raven.Client.Lightweight.???", 
+					"packages\Microsoft.CompilerServices.AsyncTargetingPack.Net4.???") |
 		ForEach-Object { 
 			if ([System.IO.Path]::IsPathRooted($_)) { return $_ }
-			return "$build_dir\$_"
+			return "$base_dir\$_"
 		}
 		
-	$silverlight_dlls = @("Raven.Client.Silverlight.???", "AsyncCtpLibrary_Silverlight5.???", "DH.Scrypt.???", "Microsoft.CompilerServices.AsyncTargetingPack.Silverlight5.???") |
+	$silverlight_dlls = @("RavenDB\Clients\Raven.Client.Silverlight\bin\release\Raven.Client.Silverlight.???", 
+	"packages\RavenDB.Client.2.0.2160-Unstable\lib\sl50\AsyncCtpLibrary_Silverlight5.???",
+	# "DH.Scrypt.???", 
+	"packages\Microsoft.CompilerServices.AsyncTargetingPack.1.0.0\lib\sl50\Microsoft.CompilerServices.AsyncTargetingPack.Silverlight5.???") |
 		ForEach-Object { 
 			if ([System.IO.Path]::IsPathRooted($_)) { return $_ }
-			return "$build_dir\sl5\$_"
+			return "$base_dir\$_"
 		}
  
 	$all_client_dlls = ( @( "Raven.Client.Embedded.???") + $client_dlls + $core_db_dlls ) |
 		ForEach-Object { 
 			if ([System.IO.Path]::IsPathRooted($_)) { return $_ }
-			return "$build_dir\$_"
+			return "$base_dir\$_"
 		}
 	  
 		$test_prjs = @("Raven.Tests.dll","Raven.Bundles.Tests.dll" )
@@ -74,9 +72,8 @@ task Verify40 {
 	}
 }
 
-
 task Clean {
-	Remove-Item -force -recurse $buildartifacts_dir -ErrorAction SilentlyContinue
+	# Remove-Item -force -recurse $buildartifacts_dir -ErrorAction SilentlyContinue
 	Remove-Item -force -recurse $release_dir -ErrorAction SilentlyContinue
 }
 
@@ -90,18 +87,18 @@ task Init -depends Verify40, Clean {
 	}
 	
 	$commit = Get-Git-Commit
-	(Get-Content "$base_dir\CommonAssemblyInfo.cs") | 
+	(Get-Content "$base_dir\RavenDB\CommonAssemblyInfo.cs") | 
 		Foreach-Object { $_ -replace ".13", ".$($env:buildlabel)" } |
 		Foreach-Object { $_ -replace "{commit}", $commit } |
-		Set-Content "$base_dir\CommonAssemblyInfo.cs" -Encoding UTF8
+		Set-Content "$base_dir\RavenDB\CommonAssemblyInfo.cs" -Encoding UTF8
 	
 	New-Item $release_dir -itemType directory -ErrorAction SilentlyContinue | Out-Null
-	New-Item $build_dir -itemType directory -ErrorAction SilentlyContinue | Out-Null
+	New-Item $ravendb_dir -itemType directory -ErrorAction SilentlyContinue | Out-Null
 }
 
 task Compile -depends Init {
-	
-	"Dummy file so msbuild knows there is one here before embedding as resource." | Out-File "$base_dir\Raven.Database\Server\WebUI\Raven.Studio.xap"
+
+	"Dummy file so msbuild knows there is one here before embedding as resource." | Out-File "$base_dir\RavenDB\Server\Raven.Database\Server\WebUI\Raven.Studio.xap"
 	
 	$v4_net_version = (ls "$env:windir\Microsoft.NET\Framework\v4.0*").Name
 	
@@ -109,7 +106,7 @@ task Compile -depends Init {
 	# exec { &"$build_dir\Raven.ProjectRewriter.exe" }
 	
 	$dat = "$base_dir\..\BuildsInfo\RavenDB\Settings.dat"
-	$datDest = "$base_dir\Raven.Studio\Settings.dat"
+	$datDest = "$base_dir\RavenDB\Clients\Raven.Studio\Settings.dat"
 	echo $dat
 	if (Test-Path $dat) {
 		Copy-Item $dat $datDest -force
@@ -190,7 +187,7 @@ task TestSilverlight -depends Compile, CopyServer {
 	
 		$statLight = Get-PackagePath StatLight
 		$statLight = "$statLight\tools\StatLight.exe"
-		&$statLight "--XapPath=.\build\sl5\Raven.Tests.Silverlight.xap" "--OverrideTestProvider=MSTestWithCustomProvider" "--ReportOutputFile=.\build\sl5\Raven.Tests.Silverlight.Results.xml" 
+		&$statLight "--XapPath=.\bin\release\sl5\Raven.Tests.Silverlight.xap" "--OverrideTestProvider=MSTestWithCustomProvider" "--ReportOutputFile=.\bin\release\sl5\Raven.Tests.Silverlight.Results.xml" 
 	}
 	finally
 	{
@@ -254,18 +251,18 @@ task RunAllTests -depends FullStorageTest,RunTests,StressTest
 task Release -depends RunTests,DoRelease
 
 task CopySamples {
-	Remove-Item "$build_dir\Output\Samples\" -recurse -force -ErrorAction SilentlyContinue 
+	Remove-Item "$output_dir\Samples\" -recurse -force -ErrorAction SilentlyContinue 
 
-	Copy-Item "$base_dir\.nuget\" "$build_dir\Output\Samples\.nuget" -recurse -force
-	Copy-Item "$base_dir\CommonAssemblyInfo.cs" "$build_dir\Output\Samples\CommonAssemblyInfo.cs" -force
-	Copy-Item "$base_dir\Raven.Samples.sln" "$build_dir\Output\Samples" -force
-	Copy-Item $base_dir\Raven.VisualHost "$build_dir\Output\Samples\Raven.VisualHost" -recurse -force
+	Copy-Item "$base_dir\.nuget\" "$output_dir\Samples\.nuget" -recurse -force
+	Copy-Item "$base_dir\RavenDB\CommonAssemblyInfo.cs" "$output_dir\Samples\CommonAssemblyInfo.cs" -force
+	Copy-Item "$base_dir\RavenDB\Raven.Samples.sln" "$output_dir\Samples" -force
+	Copy-Item $base_dir\RavenDB\Tests\Raven.VisualHost "$output_dir\Samples\Raven.VisualHost" -recurse -force
 	
-	$samples =  Get-ChildItem $base_dir\Samples | Where-Object { $_.PsIsContainer }
+	$samples =  Get-ChildItem $base_dir\RavenDB\Samples | Where-Object { $_.PsIsContainer }
 	$samples = $samples
 	foreach ($sample in $samples) {
 		Write-Output $sample
-		Copy-Item "$base_dir\Samples\$sample" "$build_dir\Output\Samples\$sample" -recurse -force
+		Copy-Item "$base_dir\RavenDB\Samples\$sample" "$output_dir\Samples\$sample" -recurse -force
 		
 		Remove-Item "$sample_dir\bin" -force -recurse -ErrorAction SilentlyContinue
 		Remove-Item "$sample_dir\obj" -force -recurse -ErrorAction SilentlyContinue
@@ -279,30 +276,30 @@ task CopySamples {
 	}
 	
 	$v4_net_version = (ls "$env:windir\Microsoft.NET\Framework\v4.0*").Name
-	exec { &"C:\Windows\Microsoft.NET\Framework\$v4_net_version\MSBuild.exe" "$base_dir\Utilities\Raven.Samples.PrepareForRelease\Raven.Samples.PrepareForRelease.csproj" /p:OutDir="$buildartifacts_dir\" }
-	exec { &"$build_dir\Raven.Samples.PrepareForRelease.exe" "$build_dir\Output\Samples\Raven.Samples.sln" "$build_dir\Output" }
+	exec { &"C:\Windows\Microsoft.NET\Framework\$v4_net_version\MSBuild.exe" "$base_dir\RavenDB\Utilities\Raven.Samples.PrepareForRelease\Raven.Samples.PrepareForRelease.csproj" /p:OutDir="$buildartifacts_dir\" }
+	exec { &"$ravendb_dir\Utilities\Raven.Samples.PrepareForRelease\obj\x86\Debug\Raven.Samples.PrepareForRelease.exe" "$output_dir\Samples\Raven.Samples.sln" "$output_dir" }
 }
 
 task CreateOutpuDirectories -depends CleanOutputDirectory {
-	New-Item $build_dir\Output -Type directory -ErrorAction SilentlyContinue | Out-Null
-	New-Item $build_dir\Output\Server -Type directory | Out-Null
-	New-Item $build_dir\Output\Web -Type directory | Out-Null
-	New-Item $build_dir\Output\Web\bin -Type directory | Out-Null
-	New-Item $build_dir\Output\EmbeddedClient -Type directory | Out-Null
-	New-Item $build_dir\Output\Client -Type directory | Out-Null
-	New-Item $build_dir\Output\Silverlight -Type directory | Out-Null
-	New-Item $build_dir\Output\Bundles -Type directory | Out-Null
-	New-Item $build_dir\Output\Samples -Type directory | Out-Null
-	New-Item $build_dir\Output\Smuggler -Type directory | Out-Null
-	New-Item $build_dir\Output\Backup -Type directory | Out-Null
+	New-Item $output_dir -Type directory -ErrorAction SilentlyContinue | Out-Null
+	New-Item $output_dir\Server -Type directory | Out-Null
+	New-Item $output_dir\Web -Type directory | Out-Null
+	New-Item $output_dir\Web\bin -Type directory | Out-Null
+	New-Item $output_dir\EmbeddedClient -Type directory | Out-Null
+	New-Item $output_dir\Client -Type directory | Out-Null
+	New-Item $output_dir\Silverlight -Type directory | Out-Null
+	New-Item $output_dir\Bundles -Type directory | Out-Null
+	New-Item $output_dir\Samples -Type directory | Out-Null
+	New-Item $output_dir\Smuggler -Type directory | Out-Null
+	New-Item $output_dir\Backup -Type directory | Out-Null
 }
 
 task CleanOutputDirectory { 
-	Remove-Item $build_dir\Output -Recurse -Force -ErrorAction SilentlyContinue
+	Remove-Item $output_dir -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 task CopyEmbeddedClient { 
-	$all_client_dlls | ForEach-Object { Copy-Item "$_" $build_dir\Output\EmbeddedClient }
+	$all_client_dlls | ForEach-Object { Copy-Item "$_" $output_dir\EmbeddedClient }
 }
 
 task CopySilverlight { 
@@ -325,19 +322,23 @@ task CopyClient {
 }
 
 task CopyWeb {
-	$web_dlls | ForEach-Object { Copy-Item "$_" $build_dir\Output\Web\bin }
-	$web_files | ForEach-Object { Copy-Item "$build_dir\$_" $build_dir\Output\Web }
+	$web_dlls | ForEach-Object { Copy-Item "$_" $output_dir\Web\bin }
+	$web_files | ForEach-Object { Copy-Item "$base_dir\$_" $output_dir\Web }
 }
 
 task CopyBundles {
-	$items = (Get-ChildItem $build_dir\Raven.Bundles.*.???) + (Get-ChildItem $build_dir\Raven.Client.*.???) | 
-				Where-Object { $_.Name.Contains(".Tests.") -eq $false } | ForEach-Object { $_.FullName }
-	Copy-Item $items $build_dir\Output\Bundles
+
+	$items = (Get-ChildItem $ravendb_dir\Bundles\Raven.Bundles.* | where{$_.mode -match "d"}) + 
+			 (Get-ChildItem $ravendb_dir\Bundles\Raven.Client.* | where{$_.mode -match "d"})|
+			 ForEach-Object { return "$_\bin\release\Raven.*.???"}|
+			 Where-Object { $_.Contains(".Tests.") -eq $false }
+	
+	Copy-Item $items $output_dir\Bundles
 }
 
 task CopyServer -depends CreateOutpuDirectories {
 	$server_files | ForEach-Object { Copy-Item "$_" $build_dir\Output\Server }
-	Copy-Item $base_dir\DefaultConfigs\RavenDb.exe.config $build_dir\Output\Server\Raven.Server.exe.config
+	Copy-Item $base_dir\RavenDB\Shared\DefaultConfigs\RavenDb.exe.config $build_dir\Output\Server\Raven.Server.exe.config
 }
 
 task CopyInstaller {
@@ -363,13 +364,13 @@ task CreateDocs {
 
 task CopyRootFiles -depends CreateDocs {
 	cp $base_dir\license.txt $build_dir\Output\license.txt
-	cp $base_dir\Scripts\Start.cmd $build_dir\Output\Start.cmd
-	cp $base_dir\Scripts\Raven-UpdateBundles.ps1 $build_dir\Output\Raven-UpdateBundles.ps1
-	cp $base_dir\Scripts\Raven-GetBundles.ps1 $build_dir\Output\Raven-GetBundles.ps1
+	cp $base_dir\RavenDB\Shared\Start.cmd $build_dir\Output\Start.cmd
+	# cp $base_dir\Scripts\Raven-UpdateBundles.ps1 $build_dir\Output\Raven-UpdateBundles.ps1
+	# cp $base_dir\Scripts\Raven-GetBundles.ps1 $build_dir\Output\Raven-GetBundles.ps1
 	cp $base_dir\readme.txt $build_dir\Output\readme.txt
 	cp $base_dir\Help\Documentation.chm $build_dir\Output\Documentation.chm  -ErrorAction SilentlyContinue
-	cp $base_dir\acknowledgments.txt $build_dir\Output\acknowledgments.txt
-	cp $base_dir\CommonAssemblyInfo.cs $build_dir\Output\CommonAssemblyInfo.cs
+	cp $base_dir\RavenDB\acknowledgments.txt $build_dir\Output\acknowledgments.txt
+	cp $base_dir\RavenDB\CommonAssemblyInfo.cs $build_dir\Output\CommonAssemblyInfo.cs
 }
 
 task ZipOutput {
@@ -480,7 +481,7 @@ task UploadVnext3 -depends Vnext3, DoRelease, Upload
 
 task CreateNugetPackages -depends Compile {
 
-	Remove-Item $base_dir\RavenDB*.nupkg
+	Remove-Item $base_dir\RavenDB\RavenDB*.nupkg
 	
 	$nuget_dir = "$build_dir\NuGet"
 	Remove-Item $nuget_dir -Force -Recurse -ErrorAction SilentlyContinue
@@ -489,7 +490,7 @@ task CreateNugetPackages -depends Compile {
 	New-Item $nuget_dir\RavenDB.Client\lib\net40 -Type directory | Out-Null
 	New-Item $nuget_dir\RavenDB.Client\lib\net45 -Type directory | Out-Null
 	New-Item $nuget_dir\RavenDB.Client\lib\sl50 -Type directory | Out-Null
-	Copy-Item $base_dir\NuGet\RavenDB.Client.nuspec $nuget_dir\RavenDB.Client\RavenDB.Client.nuspec
+	Copy-Item $base_dir\RavenDB\Shared\NuGet\RavenDB.Client.nuspec $nuget_dir\RavenDB.Client\RavenDB.Client.nuspec
 	
 	@("Raven.Abstractions.???", "Raven.Client.Lightweight.???") |% { Copy-Item "$build_dir\$_" $nuget_dir\RavenDB.Client\lib\net40 }
 	@("Raven.Abstractions-4.5.???", "Raven.Client.Lightweight-4.5.???") |% { Copy-Item "$build_dir\net45\$_" $nuget_dir\RavenDB.Client\lib\net45 }
@@ -621,7 +622,6 @@ task CreateNugetPackages -depends Compile {
 }
 
 TaskTearDown {
-	
 	if ($LastExitCode -ne 0) {
 		write-host "TaskTearDown detected an error. Build failed." -BackgroundColor Red -ForegroundColor Yellow
 		write-host "Yes, something was failed!!!!!!!!!!!!!!!!!!!!!" -BackgroundColor Red -ForegroundColor Yellow
