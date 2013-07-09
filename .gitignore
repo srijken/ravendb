@@ -2,6 +2,7 @@
 [Oo]bj
 *resharper.user
 build/
+output/
 [Hh]elp/
 *.suo
 *.sln.cache
