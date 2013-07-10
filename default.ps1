@@ -47,7 +47,7 @@ properties {
  
 	$all_client_dlls = ( @( "Raven.Client.Embedded.???") + $client_dlls + $core_db_dlls )
 	  
-	$test_prjs = @("Raven.Tests.dll","Raven.Bundles.Tests.dll" )
+	$test_prjs = @("Tests\Raven.Tests","Bundles\Raven.Bundles.Tests" )
 }
 
 task default -depends Stable,Release
@@ -107,12 +107,12 @@ task FullStorageTest {
 	$global:full_storage_test = $true
 }
 
-task Test -depends Compile {
+task Test  {
 	Clear-Host
 	
 	Write-Host $test_prjs
 	
-	$xUnit = Get-PackagePath xunit.runners
+	$xUnit = Get-PackagePath xunit.runners.1.9
 	$xUnit = "$xUnit\tools\xunit.console.clr4.exe"
 	Write-Host "xUnit location: $xUnit"
 	
@@ -120,12 +120,19 @@ task Test -depends Compile {
 		if($global:full_storage_test) {
 			$env:raventest_storage_engine = 'esent';
 			Write-Host "Testing $base_dir\$_ (esent)"
-			exec { &"$xUnit" "$base_dir\$_" }
 		}
 		else {
 			$env:raventest_storage_engine = $null;
 			Write-Host "Testing $base_dir\$_ (default)"
-			exec { &"$xUnit" "$base_dir\$_" }
+		}
+		$test = [System.IO.Path]::GetFileName($_);
+		$path = "$base_dir\RavenDB\$_\bin\$global:configuration"
+		Push-Location $path 
+		Try {
+			exec { &"$xUnit" "$test.dll" }
+		}
+		Finally {
+			Pop-Location
 		}
 	}
 }
