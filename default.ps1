@@ -373,7 +373,7 @@ task ZipOutput {
 }
 
 task ResetBuildArtifcats {
-	git checkout "Raven.Database\RavenDB.snk"
+	
 }
 
 task DoRelease -depends Compile, `
