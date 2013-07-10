@@ -233,36 +233,6 @@ task RunAllTests -depends FullStorageTest,RunTests,StressTest
 
 task Release -depends RunTests,DoRelease
 
-task CopySamples {
-	Remove-Item "$output_dir\Samples\" -recurse -force -ErrorAction SilentlyContinue 
-
-	Copy-Item "$base_dir\.nuget\" "$output_dir\Samples\.nuget" -recurse -force
-	Copy-Item "$base_dir\RavenDB\CommonAssemblyInfo.cs" "$output_dir\Samples\CommonAssemblyInfo.cs" -force
-	Copy-Item "$base_dir\RavenDB\Raven.Samples.sln" "$output_dir\Samples" -force
-	Copy-Item $base_dir\RavenDB\Tests\Raven.VisualHost "$output_dir\Samples\Raven.VisualHost" -recurse -force
-	
-	$samples =  Get-ChildItem $base_dir\RavenDB\Samples | Where-Object { $_.PsIsContainer }
-	$samples = $samples
-	foreach ($sample in $samples) {
-		Write-Output $sample
-		Copy-Item "$base_dir\RavenDB\Samples\$sample" "$output_dir\Samples\$sample" -recurse -force
-		
-		Remove-Item "$sample_dir\bin" -force -recurse -ErrorAction SilentlyContinue
-		Remove-Item "$sample_dir\obj" -force -recurse -ErrorAction SilentlyContinue
-
-		Remove-Item "$sample_dir\Servers\Shard1\Data" -force -recurse -ErrorAction SilentlyContinue
-		Remove-Item "$sample_dir\Servers\Shard2\Data" -force -recurse -ErrorAction SilentlyContinue
-		Remove-Item "$sample_dir\Servers\Shard1\Plugins" -force -recurse -ErrorAction SilentlyContinue
-		Remove-Item "$sample_dir\Servers\Shard2\Plugins" -force -recurse -ErrorAction SilentlyContinue
-		Remove-Item "$sample_dir\Servers\Shard1\RavenDB.exe" -force -recurse -ErrorAction SilentlyContinue
-		Remove-Item "$sample_dir\Servers\Shard2\RavenDB.exe" -force -recurse -ErrorAction SilentlyContinue 
-	}
-	
-	$v4_net_version = (ls "$env:windir\Microsoft.NET\Framework\v4.0*").Name
-	exec { &"C:\Windows\Microsoft.NET\Framework\$v4_net_version\MSBuild.exe" "$base_dir\RavenDB\Utilities\Raven.Samples.PrepareForRelease\Raven.Samples.PrepareForRelease.csproj" /p:OutDir="$buildartifacts_dir\" }
-	exec { &"$ravendb_dir\Utilities\Raven.Samples.PrepareForRelease\obj\x86\Debug\Raven.Samples.PrepareForRelease.exe" "$output_dir\Samples\Raven.Samples.sln" "$output_dir" }
-}
-
 task CreateOutputDirectories -depends CleanOutputDirectory {
 	New-Item $output_dir -Type directory -ErrorAction SilentlyContinue | Out-Null
 	New-Item $output_dir\Server -Type directory | Out-Null
@@ -272,7 +242,6 @@ task CreateOutputDirectories -depends CleanOutputDirectory {
 	New-Item $output_dir\Client -Type directory | Out-Null
 	New-Item $output_dir\Silverlight -Type directory | Out-Null
 	New-Item $output_dir\Bundles -Type directory | Out-Null
-	New-Item $output_dir\Samples -Type directory | Out-Null
 	New-Item $output_dir\Smuggler -Type directory | Out-Null
 	New-Item $output_dir\Backup -Type directory | Out-Null
 }
@@ -372,7 +341,6 @@ task CopyRootFiles -depends CreateDocs {
 	cp $base_dir\readme.txt Output\readme.txt
 	cp $base_dir\Help\Documentation.chm Output\Documentation.chm  -ErrorAction SilentlyContinue
 	cp $base_dir\RavenDB\acknowledgments.txt Output\acknowledgments.txt
-	cp $base_dir\RavenDB\CommonAssemblyInfo.cs Output\CommonAssemblyInfo.cs
 }
 
 task ZipOutput {
@@ -392,7 +360,6 @@ task ZipOutput {
 			$file `
 			EmbeddedClient\*.* `
 			Client\*.* `
-			Samples\*.* `
 			Smuggler\*.* `
 			Backup\*.* `
 			Web\*.* `
@@ -421,7 +388,6 @@ task DoRelease -depends Compile, `
 	CopyBundles, `
 	CopyServer, `
 	CopyRootFiles, `
-	CopySamples, `
 	ZipOutput, `
 	CopyInstaller, `
 	CreateNugetPackages, `
