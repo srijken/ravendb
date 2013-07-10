@@ -33,7 +33,9 @@ properties {
 	
 	$web_files = @("RavenDB\Shared\DefaultConfigs\web.config", "RavenDB\Shared\DefaultConfigs\NLog.Ignored.config" )
 
-	$server_files = ( @( "RavenDB\Server\Raven.Server\bin\release\Raven.Server.???", "RavenDB\Shared\DefaultConfigs\NLog.Ignored.config") + $core_db_dlls )
+	$server_exe = ( @( "Raven.Server.???") + $core_db_dlls )
+
+	$server_files = @("RavenDB\Shared\DefaultConfigs\NLog.Ignored.config")
 		
 	$client_dlls = @( (Get-DependencyPackageFiles 'NLog.2'), "Raven.Client.MvcIntegration.???", 
 					"Raven.Abstractions.???", 
@@ -86,9 +88,6 @@ task Compile -depends Init {
 	
 	$v4_net_version = (ls "$env:windir\Microsoft.NET\Framework\v4.0*").Name
 	
-	# exec { &"C:\Windows\Microsoft.NET\Framework\$v4_net_version\MSBuild.exe" "$base_dir\Utilities\Raven.ProjectRewriter\Raven.ProjectRewriter.csproj" /p:OutDir="$buildartifacts_dir\" }
-	# exec { &"$build_dir\Raven.ProjectRewriter.exe" }
-	
 	$dat = "$base_dir\..\BuildsInfo\RavenDB\Settings.dat"
 	$datDest = "$base_dir\RavenDB\Clients\Raven.Studio\Settings.dat"
 	echo $dat
@@ -101,7 +100,7 @@ task Compile -depends Init {
 	
 	Write-Host "Compiling with '$global:configuration' configuration" -ForegroundColor Yellow
 	exec { &"C:\Windows\Microsoft.NET\Framework\$v4_net_version\MSBuild.exe" "$sln_file" /p:Configuration=$global:configuration /p:nowarn="1591 1573" }
-	remove-item "$build_dir\nlog.config" -force  -ErrorAction SilentlyContinue
+	remove-item "$base_dir\nlog.config" -force  -ErrorAction SilentlyContinue
 }
 
 task FullStorageTest {
@@ -120,13 +119,13 @@ task Test -depends Compile {
 	$test_prjs | ForEach-Object { 
 		if($global:full_storage_test) {
 			$env:raventest_storage_engine = 'esent';
-			Write-Host "Testing $build_dir\$_ (esent)"
-			exec { &"$xUnit" "$build_dir\$_" }
+			Write-Host "Testing $base_dir\$_ (esent)"
+			exec { &"$xUnit" "$base_dir\$_" }
 		}
 		else {
 			$env:raventest_storage_engine = $null;
-			Write-Host "Testing $build_dir\$_ (default)"
-			exec { &"$xUnit" "$build_dir\$_" }
+			Write-Host "Testing $base_dir\$_ (default)"
+			exec { &"$xUnit" "$base_dir\$_" }
 		}
 	}
 }
@@ -137,17 +136,17 @@ task StressTest -depends Compile {
 	$xUnit = "$xUnit\tools\xunit.console.clr4.exe"
 	
 	@("Raven.StressTests.dll") | ForEach-Object { 
-		Write-Host "Testing $build_dir\$_"
+		Write-Host "Testing $base_dir\$_"
 		
 		if($global:full_storage_test) {
 			$env:raventest_storage_engine = 'esent';
-			Write-Host "Testing $build_dir\$_ (esent)"
-			&"$xUnit" "$build_dir\$_"
+			Write-Host "Testing $base_dir\$_ (esent)"
+			&"$xUnit" "$base_dir\$_"
 		}
 		else {
 			$env:raventest_storage_engine = $null;
-			Write-Host "Testing $build_dir\$_ (default)"
-			&"$xUnit" "$build_dir\$_"
+			Write-Host "Testing $base_dir\$_ (default)"
+			&"$xUnit" "$base_dir\$_"
 		}
 	}
 }
@@ -160,14 +159,14 @@ task MeasurePerformance -depends Compile {
 	$stableBuildToTests | ForEach-Object { 
 		$RavenServer = $RavenDbStableLocation + "\RavenDB-Build-$_\Server"
 		Write-Host "Measure performance against RavenDB Build #$_, Path: $RavenServer"
-		exec { &"$build_dir\Raven.Performance.exe" "--database-location=$RavenDbStableLocation --build-number=$_ --data-location=$DataLocation --logs-location=$LogsLocation" }
+		exec { &"$base_dir\Raven.Performance.exe" "--database-location=$RavenDbStableLocation --build-number=$_ --data-location=$DataLocation --logs-location=$LogsLocation" }
 	}
 }
 
 task TestSilverlight -depends Compile, CopyServer {
 	try
 	{
-		$process = Start-Process "$build_dir\Output\Server\Raven.Server.exe" "--ram --set=Raven/Port==8079" -PassThru
+		$process = Start-Process "$base_dir\Output\Server\Raven.Server.exe" "--ram --set=Raven/Port==8079" -PassThru
 	
 		$statLight = Get-PackagePath StatLight
 		$statLight = "$statLight\tools\StatLight.exe"
@@ -184,22 +183,22 @@ task TestWinRT -depends Compile, CopyServer {
 	{
 		exec { CheckNetIsolation LoopbackExempt -a -n=68089da0-d0b7-4a09-97f5-30a1e8f9f718_pjnejtz0hgswm }
 		
-		$process = Start-Process "$build_dir\Output\Server\Raven.Server.exe" "--ram --set=Raven/Port==8079" -PassThru
+		$process = Start-Process "$base_dir\Output\Server\Raven.Server.exe" "--ram --set=Raven/Port==8079" -PassThru
 	
 		$testRunner = "C:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe"
 	
 		@("Raven.Tests.WinRT.dll") | ForEach-Object { 
-			Write-Host "Testing $build_dir\winrt\$_"
+			Write-Host "Testing $base_dir\winrt\$_"
 			
 			if($global:full_storage_test) {
 				$env:raventest_storage_engine = 'esent';
-				Write-Host "Testing $build_dir\winrt\$_ (esent)"
-				&"$testRunner" "$build_dir\winrt\$_"
+				Write-Host "Testing $base_dir\winrt\$_ (esent)"
+				&"$testRunner" "$base_dir\winrt\$_"
 			}
 			else {
 				$env:raventest_storage_engine = $null;
-				Write-Host "Testing $build_dir\winrt\$_ (default)"
-				&"$testRunner" "$build_dir\winrt\$_"
+				Write-Host "Testing $base_dir\winrt\$_ (default)"
+				&"$testRunner" "$base_dir\winrt\$_"
 			}
 		}
 	}
@@ -264,7 +263,7 @@ task CopySamples {
 	exec { &"$ravendb_dir\Utilities\Raven.Samples.PrepareForRelease\obj\x86\Debug\Raven.Samples.PrepareForRelease.exe" "$output_dir\Samples\Raven.Samples.sln" "$output_dir" }
 }
 
-task CreateOutpuDirectories -depends CleanOutputDirectory {
+task CreateOutputDirectories -depends CleanOutputDirectory {
 	New-Item $output_dir -Type directory -ErrorAction SilentlyContinue | Out-Null
 	New-Item $output_dir\Server -Type directory | Out-Null
 	New-Item $output_dir\Web -Type directory | Out-Null
@@ -332,9 +331,16 @@ task CopyBundles {
 	
 }
 
-task CopyServer -depends CreateOutpuDirectories {
-	$server_files | ForEach-Object { Copy-Item "$_" $build_dir\Output\Server }
-	Copy-Item $base_dir\RavenDB\Shared\DefaultConfigs\RavenDb.exe.config $build_dir\Output\Server\Raven.Server.exe.config
+task CopyServer {
+	Copy-Project-Files -files $server_exe `
+	      -dest "Output\Server"  `
+	      -project "RavenDB\Server\Raven.Server" 
+
+	Copy-Files -files $server_files `
+	      -dest "Output\Server"  `
+	      -path $base_dir
+
+	Copy-Item $base_dir\RavenDB\Shared\DefaultConfigs\RavenDb.exe.config $base_dir\Output\Server\Raven.Server.exe.config
 }
 
 task CopyInstaller {
@@ -343,7 +349,7 @@ task CopyInstaller {
 	  return
 	}
 
-	Copy-Item $build_dir\RavenDB.Setup.exe "$release_dir\$global:uploadCategory-Build-$env:buildlabel.Setup.exe"
+	Copy-Item $base_dir\RavenDB.Setup.exe "$release_dir\$global:uploadCategory-Build-$env:buildlabel.Setup.exe"
 }
 
 task CreateDocs {
@@ -359,14 +365,14 @@ task CreateDocs {
 }
 
 task CopyRootFiles -depends CreateDocs {
-	cp $base_dir\license.txt $build_dir\Output\license.txt
-	cp $base_dir\RavenDB\Shared\Start.cmd $build_dir\Output\Start.cmd
-	# cp $base_dir\Scripts\Raven-UpdateBundles.ps1 $build_dir\Output\Raven-UpdateBundles.ps1
-	# cp $base_dir\Scripts\Raven-GetBundles.ps1 $build_dir\Output\Raven-GetBundles.ps1
-	cp $base_dir\readme.txt $build_dir\Output\readme.txt
-	cp $base_dir\Help\Documentation.chm $build_dir\Output\Documentation.chm  -ErrorAction SilentlyContinue
-	cp $base_dir\RavenDB\acknowledgments.txt $build_dir\Output\acknowledgments.txt
-	cp $base_dir\RavenDB\CommonAssemblyInfo.cs $build_dir\Output\CommonAssemblyInfo.cs
+	cp $base_dir\license.txt Output\license.txt
+	cp $base_dir\RavenDB\Shared\Start.cmd Output\Start.cmd
+	# cp $base_dir\Scripts\Raven-UpdateBundles.ps1 Output\Raven-UpdateBundles.ps1
+	# cp $base_dir\Scripts\Raven-GetBundles.ps1 Output\Raven-GetBundles.ps1
+	cp $base_dir\readme.txt Output\readme.txt
+	cp $base_dir\Help\Documentation.chm Output\Documentation.chm  -ErrorAction SilentlyContinue
+	cp $base_dir\RavenDB\acknowledgments.txt Output\acknowledgments.txt
+	cp $base_dir\RavenDB\CommonAssemblyInfo.cs Output\CommonAssemblyInfo.cs
 }
 
 task ZipOutput {
@@ -405,7 +411,7 @@ task ResetBuildArtifcats {
 
 task DoRelease -depends Compile, `
 	CleanOutputDirectory, `
-	CreateOutpuDirectories, `
+	CreateOutputDirectories, `
 	CopyEmbeddedClient, `
 	CopySmuggler, `
 	CopyBackup, `
