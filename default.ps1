@@ -25,20 +25,15 @@ properties {
 
 	$backup_files = @( "Raven.Abstractions.???", "Raven.Backup.???" ) 
    
+   	$bundles = @("Raven.Bundles.Authorization", "Raven.Bundles.CascadeDelete", 
+   		    	 "Raven.Bundles.UniqueConstraints","Raven.Client.Authorization", 
+   		    	 "Raven.Client.UniqueConstraints")
 	
-	$web_dlls = ( @( "RavenDB\Server\Raven.Web\bin\release\Raven.Web.???"  ) + $core_db_dlls) |
-		ForEach-Object { 
-			if ([System.IO.Path]::IsPathRooted($_)) { return $_ }
-			return "$base_dir\$_"
-		}
+	$web_dlls = ( @( "Raven.Web.???"  ) + $core_db_dlls)
 	
 	$web_files = @("RavenDB\Shared\DefaultConfigs\web.config", "RavenDB\Shared\DefaultConfigs\NLog.Ignored.config" )
 
-	$server_files = ( @( "RavenDB\Server\Raven.Server\bin\release\Raven.Server.???", "RavenDB\Shared\DefaultConfigs\NLog.Ignored.config") + $core_db_dlls ) |
-		ForEach-Object { 
-			if ([System.IO.Path]::IsPathRooted($_)) { return $_ }
-			return "$base_dir\$_"
-		}
+	$server_files = ( @( "RavenDB\Server\Raven.Server\bin\release\Raven.Server.???", "RavenDB\Shared\DefaultConfigs\NLog.Ignored.config") + $core_db_dlls )
 		
 	$client_dlls = @( (Get-DependencyPackageFiles 'NLog.2'), "Raven.Client.MvcIntegration.???", 
 					"Raven.Abstractions.???", 
@@ -319,22 +314,22 @@ task CopyClient {
 }
 
 task CopyWeb {
-	Copy-Project-Files -files $web_dlls `
+	Copy-Files -files $web_dlls `
 	      -dest "Output\Web\bin"  `
-	      -project "RavenDB\Clients\Raven.Web\bin" 
+	      -path "RavenDB\Server\Raven.Web\bin" 
 
-	Copy-Project-Files -files $web_dlls `
-	      -dest "Output\Web\bin" 
+	Copy-Files -files $web_files `
+	      -dest "Output\Web" `
+	      -path $base_dir
 }
 
 task CopyBundles {
 
-	$items = (Get-ChildItem $ravendb_dir\Bundles\Raven.Bundles.* | where{$_.mode -match "d"}) + 
-			 (Get-ChildItem $ravendb_dir\Bundles\Raven.Client.* | where{$_.mode -match "d"})|
-			 ForEach-Object { return "$_\bin\release\Raven.*.???"}|
-			 Where-Object { $_.Contains(".Tests.") -eq $false }
+	foreach($bundle in $bundles) {
+		Copy-Item "RavendB\Bundles\$bundle\bin\$global:configuration\$bundle.???" "Output\Bundles"
+
+	}
 	
-	Copy-Item $items $output_dir\Bundles
 }
 
 task CopyServer -depends CreateOutpuDirectories {

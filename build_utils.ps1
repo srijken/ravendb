@@ -15,6 +15,23 @@ function Copy-Project-Files
 	}
 }
 
+function Copy-Files
+{
+	param(
+		[string[]]$files,
+		[string]$dest,
+		[string]$path
+	)
+	
+	$files | ForEach-Object { 
+		if ([System.IO.Path]::IsPathRooted($_)) { return $_ }
+		return "$path\$_"
+	} | ForEach-Object { 
+
+		Copy-Item $_ $dest
+	}
+}
+
 function Get-File-Exists-On-Path
 {
 	param(
