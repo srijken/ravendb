@@ -17,11 +17,14 @@ properties {
         "Raven.Abstractions.???", 
         (Get-DependencyPackageFiles 'NLog.2'), 
         (Get-DependencyPackageFiles Microsoft.Web.Infrastructure), 
-        "SharedLibs\Jint.Raven.???", "SharedLibs\Lucene.Net.???", "packages\Microsoft.Data.Edm.???", "packages\Microsoft.WindowsAzure.Storage.???",
-		"packages\Microsoft.Data.OData.???", "packages\Microsoft.WindowsAzure.ConfigurationManager.???", "SharedLibs\Lucene.Net.Contrib.Spatial.NTS.???", 
-		"SharedLibs\Spatial4n.Core.NTS.???", "SharedLibs\GeoAPI.dll", "SharedLibs\NetTopologySuite.dll", "SharedLibs\PowerCollections.dll", 
-		"packages\ICSharpCode.NRefactory.???", "packages\ICSharpCode.NRefactory.CSharp.???", "packages\Mono.Cecil.???", "packages\Esent.Interop.???", 
-		"RavenDB\Server\Raven.Database.???", "SharedLibs\AWS.Extensions.???", "SharedLibs\AWSSDK.???" , "packages\Microsoft.CompilerServices.AsyncTargetingPack.Net4.???" )
+        "Jint.Raven.???", "Lucene.Net.???", "Microsoft.Data.Edm.???", "Microsoft.WindowsAzure.Storage.???",
+		"Microsoft.Data.OData.???", "Microsoft.WindowsAzure.ConfigurationManager.???", "Lucene.Net.Contrib.Spatial.NTS.???", 
+		"Spatial4n.Core.NTS.???", "GeoAPI.dll", "NetTopologySuite.dll", "PowerCollections.dll", 
+		"ICSharpCode.NRefactory.???", "ICSharpCode.NRefactory.CSharp.???", "Mono.Cecil.???", "Esent.Interop.???", 
+		"Raven.Database.???", "AWS.Extensions.???", "AWSSDK.???"  )
+
+	$backup_files = @( "Raven.Abstractions.???", "Raven.Backup.???" ) 
+   
 	
 	$web_dlls = ( @( "RavenDB\Server\Raven.Web\bin\release\Raven.Web.???"  ) + $core_db_dlls) |
 		ForEach-Object { 
@@ -37,31 +40,17 @@ properties {
 			return "$base_dir\$_"
 		}
 		
-	$client_dlls = @( (Get-DependencyPackageFiles 'NLog.2'), "RavenDB\Clients\Raven.Client.MvcIntegration\bin\release\Raven.Client.MvcIntegration.???", 
-					"RavenDB\Shared\Raven.Abstractions\bin\release\Raven.Abstractions.???", 
-					"RavenDB\Clients\Raven.Client.Lightweight\bin\release\Raven.Client.Lightweight.???", 
-					"packages\Microsoft.CompilerServices.AsyncTargetingPack.Net4.???") |
-		ForEach-Object { 
-			if ([System.IO.Path]::IsPathRooted($_)) { return $_ }
-			return "$base_dir\$_"
-		}
+	$client_dlls = @( (Get-DependencyPackageFiles 'NLog.2'), "Raven.Client.MvcIntegration.???", 
+					"Raven.Abstractions.???", 
+					"Raven.Client.Lightweight.???") 
 		
-	$silverlight_dlls = @("RavenDB\Clients\Raven.Client.Silverlight\bin\release\Raven.Client.Silverlight.???", 
-	"packages\RavenDB.Client.2.0.2160-Unstable\lib\sl50\AsyncCtpLibrary_Silverlight5.???",
-	# "DH.Scrypt.???", 
-	"packages\Microsoft.CompilerServices.AsyncTargetingPack.1.0.0\lib\sl50\Microsoft.CompilerServices.AsyncTargetingPack.Silverlight5.???") |
-		ForEach-Object { 
-			if ([System.IO.Path]::IsPathRooted($_)) { return $_ }
-			return "$base_dir\$_"
-		}
+	$silverlight_dlls = @("Raven.Client.Silverlight.???", 
+		"AsyncCtpLibrary_Silverlight5.???", 
+		"Microsoft.CompilerServices.AsyncTargetingPack.Silverlight5.???") 
  
-	$all_client_dlls = ( @( "Raven.Client.Embedded.???") + $client_dlls + $core_db_dlls ) |
-		ForEach-Object { 
-			if ([System.IO.Path]::IsPathRooted($_)) { return $_ }
-			return "$base_dir\$_"
-		}
+	$all_client_dlls = ( @( "Raven.Client.Embedded.???") + $client_dlls + $core_db_dlls )
 	  
-		$test_prjs = @("Raven.Tests.dll","Raven.Bundles.Tests.dll" )
+	$test_prjs = @("Raven.Tests.dll","Raven.Bundles.Tests.dll" )
 }
 
 task default -depends Stable,Release
@@ -299,31 +288,43 @@ task CleanOutputDirectory {
 }
 
 task CopyEmbeddedClient { 
-	$all_client_dlls | ForEach-Object { Copy-Item "$_" $output_dir\EmbeddedClient }
+	Copy-Project-Files -files $all_client_dlls `
+	      -dest "Output\EmbeddedClient"  `
+	      -project "RavenDB\Clients\Raven.Client.Embedded" 
 }
 
 task CopySilverlight { 
-	$silverlight_dlls + @((Get-DependencyPackageFiles 'NLog.2' -FrameworkVersion sl4)) | 
-		ForEach-Object { Copy-Item "$_" $build_dir\Output\Silverlight }
+	$files = $silverlight_dlls + @((Get-DependencyPackageFiles 'NLog.2' -FrameworkVersion sl5)) 
+	Copy-Project-Files -files $files `
+	      -dest "Output\Silverlight"  `
+	      -project "RavenDB\Clients\Raven.Client.Silverlight"
 }
 
 task CopySmuggler {
-	Copy-Item $build_dir\Raven.Abstractions.??? $build_dir\Output\Smuggler
-	Copy-Item $build_dir\Raven.Smuggler.??? $build_dir\Output\Smuggler
+	Copy-Project-Files -files @("Raven.Abstractions.???", "Raven.Smuggler.???") `
+	      -dest "Output\Smuggler"  `
+	      -project "RavenDB\Clients\Raven.Smuggler" 
 }
 
 task CopyBackup {
-	Copy-Item $build_dir\Raven.Abstractions.??? $build_dir\Output\Backup
-	Copy-Item $build_dir\Raven.Backup.??? $build_dir\Output\Backup
+	Copy-Project-Files -files $backup_files `
+	      -dest "Output\Backup"  `
+	      -project "RavenDB\Clients\Raven.Backup" 
 }
 
 task CopyClient {
-	$client_dlls | ForEach-Object { Copy-Item "$_" $build_dir\Output\Client }
+	Copy-Project-Files -files $client_dlls `
+	      -dest "Output\Client"  `
+	      -project "RavenDB\Clients\Raven.Client.Lightweight" 
 }
 
 task CopyWeb {
-	$web_dlls | ForEach-Object { Copy-Item "$_" $output_dir\Web\bin }
-	$web_files | ForEach-Object { Copy-Item "$base_dir\$_" $output_dir\Web }
+	Copy-Project-Files -files $web_dlls `
+	      -dest "Output\Web\bin"  `
+	      -project "RavenDB\Clients\Raven.Web\bin" 
+
+	Copy-Project-Files -files $web_dlls `
+	      -dest "Output\Web\bin" 
 }
 
 task CopyBundles {

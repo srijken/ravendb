@@ -1,3 +1,20 @@
+function Copy-Project-Files
+{
+	param(
+		[string[]]$files,
+		[string]$dest,
+		[string]$project
+	)
+	
+	$files | ForEach-Object { 
+		if ([System.IO.Path]::IsPathRooted($_)) { return $_ }
+		return "$project\bin\$global:configuration\$_"
+	} | ForEach-Object { 
+
+		Copy-Item $_ $dest
+	}
+}
+
 function Get-File-Exists-On-Path
 {
 	param(
