@@ -291,7 +291,7 @@ task CopyClient {
 task CopyWeb {
 	Copy-Files -files $web_dlls `
 	      -dest "Output\Web\bin"  `
-	      -path "RavenDB\Server\Raven.Web\bin" 
+	      -path "RavenDB\Server\Raven.Web\bin\release" 
 
 	Copy-Files -files $web_files `
 	      -dest "Output\Web" `
