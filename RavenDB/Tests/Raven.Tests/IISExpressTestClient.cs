@@ -22,8 +22,11 @@ namespace Raven.Tests
 			IOExtensions.DeleteDirectory(Path.GetFullPath(WebDirectory));
 
 			IOExtensions.CopyDirectory(GetRavenWebSource(), WebDirectory);
-			IOExtensions.CopyDirectory(@".\web\", Path.Combine(WebDirectory, @".\bin\"));
-
+#if DEBUG
+			IOExtensions.CopyDirectory(@".\..\..\..\..\Server\Raven.Web\bin\debug\", Path.Combine(WebDirectory, @".\bin\"));
+#else
+			IOExtensions.CopyDirectory(@".\..\..\..\..\Server\Raven.Web\bin\release\", Path.Combine(WebDirectory, @".\bin\"));
+#endif
 			if (Directory.Exists(Path.Combine(WebDirectory, "Data")))
 			{
 				IOExtensions.DeleteDirectory(Path.Combine(WebDirectory, "Data"));
@@ -34,7 +37,7 @@ namespace Raven.Tests
 
 		private static string GetRavenWebSource()
 		{
-			foreach (var path in new[] { @".\..\Raven.Web", @".\_PublishedWebsites\Raven.Web" })
+			foreach (var path in new[] { @".\..\..\..\..\Server\Raven.Web", @".\_PublishedWebsites\Raven.Web" })
 			{
 				var fullPath = Path.GetFullPath(path);
 
