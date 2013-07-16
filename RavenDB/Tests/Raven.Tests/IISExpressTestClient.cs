@@ -13,7 +13,7 @@ namespace Raven.Tests
 {
 	public class IisExpressTestClient : IDisposable
 	{
-		private const string WebDirectory = @".\RavenIISTestWeb\";
+		private const string WebDirectory = @".\RavenIISTestWeb";
 		public static int Port = 8084;
 		private IISExpressDriver iisExpress;
 
@@ -21,12 +21,8 @@ namespace Raven.Tests
 		{
 			IOExtensions.DeleteDirectory(Path.GetFullPath(WebDirectory));
 
-			IOExtensions.CopyDirectory(GetRavenWebSource(), WebDirectory);
-#if DEBUG
-			IOExtensions.CopyDirectory(@".\..\..\..\..\Server\Raven.Web\bin\debug\", Path.Combine(WebDirectory, @".\bin\"));
-#else
-			IOExtensions.CopyDirectory(@".\..\..\..\..\Server\Raven.Web\bin\release\", Path.Combine(WebDirectory, @".\bin\"));
-#endif
+			IOExtensions.CopyDirectory(GetRavenWebSource(), Path.Combine(WebDirectory, "bin"));
+			File.Copy(@".\..\..\..\..\Server\Raven.Web\web.config", Path.Combine(WebDirectory, "web.Config"));
 			if (Directory.Exists(Path.Combine(WebDirectory, "Data")))
 			{
 				IOExtensions.DeleteDirectory(Path.Combine(WebDirectory, "Data"));
@@ -37,11 +33,11 @@ namespace Raven.Tests
 
 		private static string GetRavenWebSource()
 		{
-			foreach (var path in new[] { @".\..\..\..\..\Server\Raven.Web", @".\_PublishedWebsites\Raven.Web" })
+			foreach (var path in new[] { @".\..\..\..\..\Server\Raven.Web\bin", @".\_PublishedWebsites\Raven.Web" })
 			{
 				var fullPath = Path.GetFullPath(path);
 
-				if (Directory.Exists(fullPath) && File.Exists(Path.Combine(fullPath, "web.config")))
+				if (Directory.Exists(fullPath))
 				{
 					return fullPath;
 				}

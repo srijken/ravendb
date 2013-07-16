@@ -163,6 +163,19 @@ namespace Raven.Client.Connection
 						try
 						{
 							Response = await httpClient.SendAsync(new HttpRequestMessage(new HttpMethod(Method), Url));
+
+							HttpResponseHeaders x = Response.Headers;
+							ResponseHeaders = new NameValueCollection();
+							foreach (var header in Response.Headers)
+							{
+								foreach (var val in header.Value)
+								{
+									ResponseHeaders.Add(header.Key, val);
+								}
+							}
+							ResponseStatusCode = Response.StatusCode;
+
+
 						}
 						finally
 						{
