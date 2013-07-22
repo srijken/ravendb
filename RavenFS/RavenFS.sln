@@ -6,19 +6,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{ABA47C
 		.nuget\packages.config = .nuget\packages.config
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RavenFS", "RavenFS\RavenFS.csproj", "{6057787E-1771-4942-B3E5-FB435CED0408}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RavenFS", "Server\RavenFS\RavenFS.csproj", "{6057787E-1771-4942-B3E5-FB435CED0408}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RavenFS.Tests", "RavenFS.Tests\RavenFS.Tests.csproj", "{01CA67F3-1E46-455C-8713-86FCCF2EFBC7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RavenFS.Tests", "Tests\RavenFS.Tests\RavenFS.Tests.csproj", "{01CA67F3-1E46-455C-8713-86FCCF2EFBC7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RavenFS.Client", "RavenFS.Client\RavenFS.Client.csproj", "{E37467ED-F680-423E-964A-60988A90F76E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RavenFS.Client", "Clients\RavenFS.Client\RavenFS.Client.csproj", "{E37467ED-F680-423E-964A-60988A90F76E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tryouts", "Tryouts\Tryouts.csproj", "{E2F19811-5723-4693-B347-B79C8FA80F14}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tryouts", "Tests\Tryouts\Tryouts.csproj", "{E2F19811-5723-4693-B347-B79C8FA80F14}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RavenFS.Client.Silverlight", "RavenFS.Client.Silverlight\RavenFS.Client.Silverlight.csproj", "{4FC11663-0B21-4AA2-B092-02F75AEB8CF6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RavenFS.Client.Silverlight", "Clients\RavenFS.Client.Silverlight\RavenFS.Client.Silverlight.csproj", "{4FC11663-0B21-4AA2-B092-02F75AEB8CF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RavenFS.Studio", "RavenFS.Studio\RavenFS.Studio.csproj", "{4E9DB486-66C3-48FE-B750-78C5E1C2FAB1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RavenFS.Studio", "Clients\RavenFS.Studio\RavenFS.Studio.csproj", "{4E9DB486-66C3-48FE-B750-78C5E1C2FAB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RavenFS.Server", "RavenFS.Server\RavenFS.Server.csproj", "{32036FBC-B57E-47E6-A594-68B25080FFD8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RavenFS.Server", "Server\RavenFS.Server\RavenFS.Server.csproj", "{32036FBC-B57E-47E6-A594-68B25080FFD8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -50,11 +50,11 @@ Testresults
 /*.shfbproj_Fitzchak
 Raven.Studio/Settings.dat
 
-RavenFS/Data.ravenfs/*
-RavenFS/Index.ravenfs/*
-/Deploy/*
-/RavenFS/RavenFS.Publish.xml
-Packages.dgml
+RavenFS/RavenFS/Data.ravenfs/*
+RavenFS/RavenFS/Index.ravenfs/*
+RavenFS//Deploy/*
+RavenFS//RavenFS/RavenFS.Publish.xml
+RavenFS/Packages.dgml
 
 RavenFS.Web/Data.ravenfs/*
 RavenFS.Web/Index.ravenfs/*
