@@ -49,3 +49,15 @@ Testresults
 /Raven.Client.MvcIntegration/Content/ravendb-profiler.min.js
 /*.shfbproj_Fitzchak
 Raven.Studio/Settings.dat
+
+RavenFS/Data.ravenfs/*
+RavenFS/Index.ravenfs/*
+/Deploy/*
+/RavenFS/RavenFS.Publish.xml
+Packages.dgml
+
+RavenFS.Web/Data.ravenfs/*
+RavenFS.Web/Index.ravenfs/*
+RavenFS/~/
+RavenFS/Data
+RavenFS/Logs/

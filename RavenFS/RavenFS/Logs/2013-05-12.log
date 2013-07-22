@@ -1,0 +1,5 @@
+time,logger,level,message,exception
+2013-05-12 13:13:34.6581,RavenFS.Storage.StorageConfigurator,Info,"Esent Settings:
+  MaxVerPages      = 32768
+  CacheSizeMax     = 65536
+  DatabasePageSize = 4096",

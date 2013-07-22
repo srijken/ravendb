@@ -1,0 +1,92 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+					xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Images/Images.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+	<!-- notification level colors (names linked to NotificationLevel enum -->
+	<Color x:Key="InfoColor">#FF29CC29</Color>	
+	<Color x:Key="WarningColor">#FFCCCC29</Color>	
+	<Color x:Key="ErrorColor">#FFCC2929</Color>
+
+    <LinearGradientBrush x:Key="Brush_TextBox_Background"
+						 EndPoint="0.5,1"
+						 StartPoint="0.5,0">
+        <GradientStop Color="#F7F7F7" />
+		<GradientStop Color="#FEFEFE" Offset="0.15" />
+		<GradientStop Color="#FEFEFE" Offset="0.15" />
+		<GradientStop Color="#F7F7F7" Offset="1" />
+	</LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="Brush_Border_Footer" EndPoint="0.5,1" StartPoint="0.5,0">
+        <GradientStop Color="#C5F7F7F7" Offset="0.75"/>
+        <GradientStop Color="#C1E8E8E8" Offset="0"/>
+    </LinearGradientBrush>
+
+    <ImageBrush x:Key="Brush_BackgroundTexture" ImageSource="{StaticResource Image_BackgroundTexture}" 
+                AlignmentX="Left" 
+                AlignmentY="Top" 
+                Stretch="None"/>
+
+    <ImageBrush x:Key="Brush_BackgroundReversed" ImageSource="{StaticResource Image_BackgroundTexture}" 
+                AlignmentX="Left" 
+                AlignmentY="Top" 
+                Stretch="None">
+        <ImageBrush.Transform>
+            <ScaleTransform ScaleY="-1"/>
+        </ImageBrush.Transform>
+    </ImageBrush>
+
+    <LinearGradientBrush x:Key="Brush_OperationsPaneHeader" StartPoint="0,0"  EndPoint="0,1">
+        <GradientStop Color="#FFBCB7B8" Offset="0.24"/>
+        <GradientStop Color="#FFBCB7B8" Offset="1"/>
+        <GradientStop Color="#FFF0E8E9"/>
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="Brush_OperationsPaneBorder" Color="#FFCCC2C5"/>
+    
+    <Color x:Key="Color_ControlBorder">#FFEAE7E4</Color>
+    <SolidColorBrush x:Key="Brush_ControlBorder" Color="{StaticResource Color_ControlBorder}"/>
+
+    <Color x:Key="Color_TextBoxBorder">#C6BEBE</Color>
+    <SolidColorBrush x:Key="Brush_TextBoxBorder" Color="{StaticResource Color_TextBoxBorder}"/>
+    
+    <Color x:Key="Color_HeaderText">#FFA2183E</Color>
+    <SolidColorBrush x:Key="Brush_HeaderText" Color="{StaticResource Color_HeaderText}"/>
+    
+	<Color x:Key="Color_Contrast">#FF9A002B</Color>
+	<SolidColorBrush x:Key="Brush_ContrastColor" Color="{StaticResource Color_Contrast}"/>
+
+    <Color x:Key="Color_ItemSelected">#FFC4C4C4</Color>
+    <SolidColorBrush x:Key="Brush_ItemSelected" Color="{StaticResource Color_ItemSelected}"/>
+
+    <SolidColorBrush x:Key="Brush_ToolbarBackground" Color="#FFE2D9D9"/>
+    <SolidColorBrush x:Key="Brush_HeaderBorder" Color="#FFEBE2E6"/>
+
+    <LinearGradientBrush x:Key="Brush_HeaderBackground"  EndPoint="0.5,1" StartPoint="0.5,0">
+        <GradientStop Color="#FFF4F0F1"/>
+        <GradientStop Color="#FFE7E4E5" Offset="0.286"/>
+        <GradientStop Color="#FFE6E4E5" Offset="0.815"/>
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="Brush_TextBoxFocusBorder" Color="#F2F2F2"/>
+    
+    <SolidColorBrush x:Key="Brush_SearchbarBackground" Color="#EEB9C7"/>
+    
+    <Color x:Key="Brush_Button_PressedColor">#F9F2F4</Color>
+    
+    <LinearGradientBrush x:Key="Brush_SubtleBackground1" EndPoint="0.5,1" StartPoint="0.5,0">
+							<GradientStop Color="#FFF9F9F9" Offset="0"/>
+							<GradientStop Color="#FFF2F2F2" Offset="1"/>
+						</LinearGradientBrush>
+						
+	<LinearGradientBrush x:Key="Brush_SubtleBackground2" EndPoint="0.5,1" StartPoint="0.5,0">
+		<GradientStop Color="#FEFAFAFA"/>
+		<GradientStop Color="#FFF1F1F1" Offset="1"/>
+	</LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="Brush_ErrorBackground" EndPoint="0.5,1" StartPoint="0.5,0">
+        <GradientStop Color="#D67171"/>
+        <GradientStop Color="#C25858" Offset="1"/>
+    </LinearGradientBrush>
+</ResourceDictionary>
