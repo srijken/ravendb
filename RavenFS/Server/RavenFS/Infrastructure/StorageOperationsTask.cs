@@ -206,7 +206,7 @@ namespace RavenFS.Infrastructure
 
 				Log.Debug("Starting to delete file '{0}' from storage", deletingFileName);
 
-				var deleteTask = TaskEx.Run(() =>
+				var deleteTask = Task.Run(() =>
 					{
 						try
 						{
@@ -235,7 +235,7 @@ namespace RavenFS.Infrastructure
 				tasks.Add(deleteTask);
 			}
 
-			return TaskEx.WhenAll(tasks);
+			return Task.WhenAll(tasks);
 		}
 
 		public Task ResumeFileRenamingAsync()
@@ -260,7 +260,7 @@ namespace RavenFS.Infrastructure
 				Log.Debug("Starting to resume a rename operation of a file '{0}' to '{1}'", renameOperation.Name,
 				          renameOperation.Rename);
 
-				var renameTask = TaskEx.Run(() =>
+				var renameTask = Task.Run(() =>
 					{
 						try
 						{
@@ -281,7 +281,7 @@ namespace RavenFS.Infrastructure
 				tasks.Add(renameTask);
 			}
 
-			return TaskEx.WhenAll(tasks);
+			return Task.WhenAll(tasks);
 		}
 
 		private static string SynchronizedFileName(string originalFileName)

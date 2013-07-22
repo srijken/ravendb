@@ -68,7 +68,7 @@ namespace RavenFS.Search
 
 			private void DisposeRudely()
 			{
-				var indexReader = IndexSearcher.GetIndexReader();
+				var indexReader = IndexSearcher.IndexReader;
 				if (indexReader != null)
 					indexReader.Close();
 				IndexSearcher.Close();

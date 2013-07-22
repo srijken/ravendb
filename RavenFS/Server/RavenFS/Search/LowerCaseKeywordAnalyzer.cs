@@ -13,7 +13,7 @@ namespace RavenFS.Search
     {
         public override TokenStream ReusableTokenStream(string fieldName, TextReader reader)
         {
-            var previousTokenStream = (LowerCaseKeywordTokenizer)GetPreviousTokenStream();
+            var previousTokenStream = (LowerCaseKeywordTokenizer)PreviousTokenStream;
             if (previousTokenStream == null)
                 return TokenStream(fieldName, reader);
             previousTokenStream.Reset(reader);

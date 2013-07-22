@@ -11,12 +11,12 @@
     <iconUrl>http://go.microsoft.com/fwlink/?LinkId=261274</iconUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>Silverlight extensions library for Rx. Contains scheduler functionality for the Silverlight Dispatcher.</description>
+    <releaseNotes />
     <copyright>Microsoft Corporation © 2012</copyright>
     <language>en-us</language>
     <tags>Rx Reactive Extensions Observable LINQ Events</tags>
     <dependencies>
       <dependency id="Rx-Xaml" version="2.1.30214.0" />
     </dependencies>
-    <references />
   </metadata>
 </package>

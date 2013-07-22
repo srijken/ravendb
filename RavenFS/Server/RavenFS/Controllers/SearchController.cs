@@ -15,7 +15,7 @@ namespace RavenFS.Controllers
 			IndexSearcher searcher;
 			using (Search.GetSearcher(out searcher))
 			{
-				return searcher.GetIndexReader().GetFieldNames(IndexReader.FieldOption.ALL).ToArray();
+				return searcher.IndexReader.GetFieldNames(IndexReader.FieldOption.ALL).ToArray();
 			}
 		}
 

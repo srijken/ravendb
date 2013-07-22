@@ -78,7 +78,7 @@ namespace RavenFS.Synchronization
 				destinationSyncTasks.Add(SynchronizeDestinationAsync(destinationUrl, forceSyncingContinuation));
 			}
 
-			return TaskEx.WhenAll(destinationSyncTasks);
+			return Task.WhenAll(destinationSyncTasks);
 		}
 
 		public async Task<SynchronizationReport> SynchronizeFileToAsync(string fileName, string destinationUrl)
@@ -164,7 +164,7 @@ namespace RavenFS.Synchronization
 
 				await EnqueueMissingUpdatesAsync(destinationClient, lastETag, needSyncingAgain);
 
-				var reports = await TaskEx.WhenAll(SynchronizePendingFilesAsync(destinationUrl, forceSyncingContinuation));
+				var reports = await Task.WhenAll(SynchronizePendingFilesAsync(destinationUrl, forceSyncingContinuation));
 
 				var destinationSyncResult = new DestinationSyncResult
 					{

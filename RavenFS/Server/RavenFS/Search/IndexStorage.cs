@@ -64,7 +64,7 @@ namespace RavenFS.Search
 
 				for (var i = start; i < pageSize + start && i < topDocs.TotalHits; i++)
 				{
-					var document = searcher.Doc(topDocs.ScoreDocs[i].doc);
+					var document = searcher.Doc(topDocs.ScoreDocs[i].Doc);
 					results.Add(document.Get("__key"));
 				}
 				totalResults = topDocs.TotalHits;
@@ -193,23 +193,23 @@ namespace RavenFS.Search
 			IndexSearcher searcher;
 			using(GetSearcher(out searcher))
 			{
-				var termEnum = searcher.GetIndexReader().Terms(new Term(field, fromValue ?? string.Empty));
+				var termEnum = searcher.IndexReader.Terms(new Term(field, fromValue ?? string.Empty));
 				try
 				{
 					if (string.IsNullOrEmpty(fromValue) == false) // need to skip this value
 					{
-						while (termEnum.Term() == null || fromValue.Equals(termEnum.Term().Text()))
+						while (termEnum.Term == null || fromValue.Equals(termEnum.Term.Text))
 						{
 							if (termEnum.Next() == false)
 								yield break;
 						}
 					}
-					while (termEnum.Term() == null ||
-						field.Equals(termEnum.Term().Field()))
+					while (termEnum.Term == null ||
+						field.Equals(termEnum.Term.Field))
 					{
-						if (termEnum.Term() != null)
+						if (termEnum.Term != null)
 						{
-							var item = termEnum.Term().Text();
+							var item = termEnum.Term.Text;
 							yield return item;
 						}
 

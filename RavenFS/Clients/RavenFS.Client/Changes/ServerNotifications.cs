@@ -91,7 +91,7 @@ namespace RavenFS.Client.Changes
 
 	    public Task WhenSubscriptionsActive()
 	    {
-	        return TaskEx.WhenAll(pendingConnectionTasks);
+	        return Task.WhenAll(pendingConnectionTasks);
 	    }
 
         public IObservable<ConfigChange> ConfigurationChanges()
@@ -202,7 +202,7 @@ namespace RavenFS.Client.Changes
 		{
 			if (disposed)
 			{
-				await TaskEx.FromResult(true);
+				await Task.FromResult(true);
 				return;
 			}
 			disposed = true;
@@ -210,7 +210,7 @@ namespace RavenFS.Client.Changes
 
 			if (connection == null)
 			{
-				await TaskEx.FromResult(true);
+				await Task.FromResult(true);
 				return;
 			}
 
