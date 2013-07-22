@@ -4,6 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using RavenFS.Client.Connections;
 using RavenFS.Client.Util;
+#if !SILVERLIGHT
+using TaskEx = System.Threading.Tasks.Task;
+#endif
 
 namespace RavenFS.Client.Changes
 {
@@ -91,7 +94,7 @@ namespace RavenFS.Client.Changes
 
 	    public Task WhenSubscriptionsActive()
 	    {
-	        return Task.WhenAll(pendingConnectionTasks);
+            return TaskEx.WhenAll(pendingConnectionTasks);
 	    }
 
         public IObservable<ConfigChange> ConfigurationChanges()
@@ -202,7 +205,7 @@ namespace RavenFS.Client.Changes
 		{
 			if (disposed)
 			{
-				await Task.FromResult(true);
+				await TaskEx.FromResult(true);
 				return;
 			}
 			disposed = true;
@@ -210,7 +213,7 @@ namespace RavenFS.Client.Changes
 
 			if (connection == null)
 			{
-				await Task.FromResult(true);
+                await TaskEx.FromResult(true);
 				return;
 			}
 
