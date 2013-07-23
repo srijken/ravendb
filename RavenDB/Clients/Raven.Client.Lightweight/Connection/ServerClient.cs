@@ -376,7 +376,7 @@ namespace Raven.Client.Connection
 				if (httpWebResponse == null ||
 					httpWebResponse.StatusCode != HttpStatusCode.Conflict)
 					throw;
-				throw ThrowConcurrencyException(e);
+				throw FetchConcurrencyException(e);
 			}
 			return SerializationHelper.RavenJObjectsToJsonDocuments(((RavenJArray)responseJson).OfType<RavenJObject>()).ToArray();
 		}
@@ -412,7 +412,7 @@ namespace Raven.Client.Connection
 				if (httpWebResponse == null ||
 					httpWebResponse.StatusCode != HttpStatusCode.Conflict)
 					throw;
-				throw ThrowConcurrencyException(e);
+				throw FetchConcurrencyException(e);
 			}
 			var jsonSerializer = convention.CreateSerializer();
 			return jsonSerializer.Deserialize<PutResult>(new RavenJTokenReader(responseJson));
@@ -857,11 +857,11 @@ namespace Raven.Client.Connection
 				if (httpWebResponse == null ||
 					httpWebResponse.StatusCode != HttpStatusCode.Conflict)
 					throw;
-				throw ThrowConcurrencyException(e);
+				throw FetchConcurrencyException(e);
 			}
 		}
 
-		private static Exception ThrowConcurrencyException(WebException e)
+		private static Exception FetchConcurrencyException(WebException e)
 		{
 			using (var sr = new StreamReader(e.Response.GetResponseStreamWithHttpDecompression()))
 			{
@@ -1405,7 +1405,7 @@ namespace Raven.Client.Connection
 				if (httpWebResponse == null ||
 					httpWebResponse.StatusCode != HttpStatusCode.Conflict)
 					throw;
-				throw ThrowConcurrencyException(e);
+				throw FetchConcurrencyException(e);
 			}
 			return convention.CreateSerializer().Deserialize<BatchResult[]>(new RavenJTokenReader(response));
 		}
