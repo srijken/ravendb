@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Raven.Tests</RootNamespace>
     <AssemblyName>Raven.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -580,7 +580,6 @@
     <Compile Include="Issues\RavenDB_1107.cs" />
     <Compile Include="Issues\RavenDB_1163.cs" />
     <Compile Include="Issues\RavenDB_1165.cs" />
-    <Compile Include="Issues\RavenDB_1233.cs" />
     <Compile Include="Issues\RavenDB_406.cs" />
     <Compile Include="Issues\RavenDB953.cs" />
     <Compile Include="Issues\RavenDB955.cs" />
