@@ -314,6 +314,9 @@ namespace Raven.Client.Connection
 				return commands.DirectGetAsync(commands.Url, RavenReplicationDestinations).ContinueWith((Task<JsonDocument> getTask) =>
 				{
 					JsonDocument document;
+
+					var fromFailoverUrls = false;
+
 					if (getTask.Status == TaskStatus.RanToCompletion)
 					{
 						document = getTask.Result;
@@ -340,6 +343,8 @@ namespace Raven.Client.Connection
 
 								document = new JsonDocument();
 								document.DataAsJson = RavenJObject.FromObject(failoverServers);
+
+								fromFailoverUrls = true;
 							}
 						}
 					}
@@ -350,7 +355,8 @@ namespace Raven.Client.Connection
 						return;
 					}
 
-					ReplicationInformerLocalCache.TrySavingReplicationInformationToLocalCache(serverHash, document);
+					if(!fromFailoverUrls)
+						ReplicationInformerLocalCache.TrySavingReplicationInformationToLocalCache(serverHash, document);
 
 					UpdateReplicationInformationFromDocument(document);
 
@@ -366,6 +372,8 @@ namespace Raven.Client.Connection
 				var serverHash = ServerHash.GetServerHash(commands.Url);
 
 				JsonDocument document;
+				var fromFailoverUrls = false;
+
 				try
 				{
 					document = commands.DirectGet(commands.Url, RavenReplicationDestinations);
@@ -392,6 +400,8 @@ namespace Raven.Client.Connection
 
 							document = new JsonDocument();
 							document.DataAsJson = RavenJObject.FromObject(failoverServers);
+
+							fromFailoverUrls = true;
 						}
 					}
 				}
@@ -401,7 +411,8 @@ namespace Raven.Client.Connection
 					return;
 				}
 
-				ReplicationInformerLocalCache.TrySavingReplicationInformationToLocalCache(serverHash, document);
+				if(!fromFailoverUrls)
+					ReplicationInformerLocalCache.TrySavingReplicationInformationToLocalCache(serverHash, document);
 
 				UpdateReplicationInformationFromDocument(document);
 
