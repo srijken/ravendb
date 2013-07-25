@@ -7,17 +7,14 @@ namespace Raven.Abstractions.Util.Encryptors
 {
 	using System.Security.Cryptography;
 
-	public class DefaultEncryptor : IEncryptor
+	public sealed class DefaultEncryptor : EncryptorBase<FipsEncryptor.FipsSymmetricalEncryptor, FipsEncryptor.FipsAsymmetricalEncryptor>
 	{
 		public DefaultEncryptor()
 		{
 			Hash = new DefaultHashEncryptor();
-			Symmetrical = new DefaultSymmetricalEncryptor();
 		}
 
-		public IHashEncryptor Hash { get; private set; }
-
-		public ISymmetricalEncryptor Symmetrical { get; private set; }
+		public override IHashEncryptor Hash { get; protected set; }
 
 		private class DefaultHashEncryptor : HashEncryptorBase, IHashEncryptor
 		{
@@ -37,19 +34,6 @@ namespace Raven.Abstractions.Util.Encryptors
 			public byte[] Compute(byte[] bytes)
 			{
 				return ComputeHash(MD5.Create(), bytes);
-			}
-		}
-
-		private class DefaultSymmetricalEncryptor : ISymmetricalEncryptor
-		{
-			public byte[] Encrypt()
-			{
-				throw new System.NotImplementedException();
-			}
-
-			public byte[] Decrypt()
-			{
-				throw new System.NotImplementedException();
 			}
 		}
 	}

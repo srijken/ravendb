@@ -278,6 +278,7 @@
     <Compile Include="Util\EasyReaderWriterLock.cs" />
     <Compile Include="Util\Encryptors\DefaultEncryptor.cs" />
     <Compile Include="Util\Encryptors\Encryptor.cs" />
+    <Compile Include="Util\Encryptors\EncryptorBase.cs" />
     <Compile Include="Util\Encryptors\FipsEncryptor.cs" />
     <Compile Include="Util\Encryptors\HashEncryptorBase.cs" />
     <Compile Include="Util\Encryptors\IEncryptor.cs" />
