@@ -123,6 +123,11 @@ namespace Raven.Client
 			set { url = value.EndsWith("/") ? value.Substring(0, value.Length - 1) : value; }
 		}
 
+		/// <summary>
+		/// Whenever or not we will use FIPS compliant encryption algorithms (must match server settings).
+		/// </summary>
+		public bool UseFipsEncryptionAlgorithms { get; set; }
+
 		///<summary>
 		/// Whatever or not we will automatically enlist in distributed transactions
 		///</summary>

@@ -32,11 +32,14 @@ using System.Collections.Concurrent;
 using Raven.Client.WinRT.Connection;
 #else
 using Raven.Client.Document.DTC;
+using Raven.Abstractions.Util.Encryptors;
 #endif
 
 
 namespace Raven.Client.Document
 {
+	using System.Configuration;
+
 	/// <summary>
 	/// Manages access to RavenDB and open sessions to work with RavenDB.
 	/// </summary>
@@ -444,7 +447,6 @@ namespace Raven.Client.Document
 					DatabaseCommands.ForSystemDatabase().Admin.EnsureDatabaseExists(DefaultDatabase, ignoreFailures: true);
 				}
 #endif
-
 			}
 			catch (Exception)
 			{
@@ -628,12 +630,27 @@ namespace Raven.Client.Document
 				throw new ArgumentException("Document store URL cannot be empty", "Url");
 		}
 
+#if !SILVERLIGHT && !NETFX_CORE
+		private void InitializeEncryptor()
+		{
+			var setting = ConfigurationManager.AppSettings["Raven/Encryption/FIPS"];
+
+			bool fips;
+			if (string.IsNullOrEmpty(setting) || !bool.TryParse(setting, out fips)) 
+				fips = UseFipsEncryptionAlgorithms;
+
+			Encryptor.Initialize(fips);
+		}
+#endif
+
 		/// <summary>
 		/// Initialize the document store access method to RavenDB
 		/// </summary>
 		protected virtual void InitializeInternal()
 		{
 #if !SILVERLIGHT && !NETFX_CORE
+			
+			InitializeEncryptor();
 
 			var rootDatabaseUrl = MultiDatabase.GetRootDatabaseUrl(Url);
 			var rootServicePoint = ServicePointManager.FindServicePoint(new Uri(rootDatabaseUrl));
@@ -798,7 +815,7 @@ namespace Raven.Client.Document
 
 				var session = new AsyncDocumentSession(dbName, this, asyncDatabaseCommands, listeners, sessionId)
 				{
-				    DatabaseName = dbName ?? DefaultDatabase
+					DatabaseName = dbName ?? DefaultDatabase
 				};
 				AfterSessionCreated(session);
 				return session;
@@ -832,7 +849,7 @@ namespace Raven.Client.Document
 
 		public IAsyncDocumentSession OpenAsyncSession(OpenSessionOptions options)
 		{
-            return OpenAsyncSessionInternal(options.Database, SetupCommandsAsync(AsyncDatabaseCommands, options.Database, options.Credentials, options));
+			return OpenAsyncSessionInternal(options.Database, SetupCommandsAsync(AsyncDatabaseCommands, options.Database, options.Credentials, options));
 		}
 
 		/// <summary>
