@@ -32,14 +32,11 @@ using System.Collections.Concurrent;
 using Raven.Client.WinRT.Connection;
 #else
 using Raven.Client.Document.DTC;
-using Raven.Abstractions.Util.Encryptors;
 #endif
 
 
 namespace Raven.Client.Document
 {
-	using System.Configuration;
-
 	/// <summary>
 	/// Manages access to RavenDB and open sessions to work with RavenDB.
 	/// </summary>
@@ -629,19 +626,6 @@ namespace Raven.Client.Document
 			if (string.IsNullOrEmpty(Url))
 				throw new ArgumentException("Document store URL cannot be empty", "Url");
 		}
-
-#if !SILVERLIGHT && !NETFX_CORE
-		private void InitializeEncryptor()
-		{
-			var setting = ConfigurationManager.AppSettings["Raven/Encryption/FIPS"];
-
-			bool fips;
-			if (string.IsNullOrEmpty(setting) || !bool.TryParse(setting, out fips)) 
-				fips = UseFipsEncryptionAlgorithms;
-
-			Encryptor.Initialize(fips);
-		}
-#endif
 
 		/// <summary>
 		/// Initialize the document store access method to RavenDB

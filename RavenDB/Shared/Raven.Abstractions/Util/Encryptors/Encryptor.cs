@@ -47,5 +47,10 @@ namespace Raven.Abstractions.Util.Encryptors
 		{
 			current = useFips ? (IEncryptor)new FipsEncryptor() : new DefaultEncryptor();
 		}
+
+		public static void Dispose()
+		{
+			current = null;
+		}
 	}
 }

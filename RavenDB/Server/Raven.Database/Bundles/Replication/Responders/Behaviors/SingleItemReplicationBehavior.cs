@@ -216,13 +216,21 @@ namespace Raven.Bundles.Replication.Responders
 		private static string HashReplicationIdentifier(RavenJObject metadata)
 		{
 			var bytes = Encoding.UTF8.GetBytes(metadata.Value<string>(Constants.RavenReplicationSource) + "/" + metadata.Value<string>("@etag"));
-			return new Guid(Encryptor.Current.Hash.Compute(bytes)).ToString();
+
+			var hash = Encryptor.Current.Hash.Compute(bytes);
+			Array.Resize(ref hash, 16);
+
+			return new Guid(hash).ToString();
 		}
 
 		private string HashReplicationIdentifier(Etag existingEtag)
 		{
 			var bytes = Encoding.UTF8.GetBytes(Database.TransactionalStorage.Id + "/" + existingEtag);
-			return new Guid(Encryptor.Current.Hash.Compute(bytes)).ToString();
+
+			var hash = Encryptor.Current.Hash.Compute(bytes);
+			Array.Resize(ref hash, 16);
+
+			return new Guid(hash).ToString();
 		}
 	}
 }

@@ -71,7 +71,7 @@ namespace Raven.Tests.Helpers
 					RunInUnreliableYetFastModeThatIsNotSuitableForProduction = true,
 					RunInMemory = storageType.Equals("esent", StringComparison.OrdinalIgnoreCase) == false && runInMemory,
 					Port = 8079,
-					UseFips = true
+					UseFips = SettingsHelper.UseFipsEncryptionAlgorithms
 				}
 			};
 

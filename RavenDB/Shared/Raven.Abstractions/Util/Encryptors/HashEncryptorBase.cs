@@ -2,7 +2,7 @@
 {
 	using System.Security.Cryptography;
 
-	internal abstract class HashEncryptorBase
+	public abstract class HashEncryptorBase
 	{
 		public byte[] ComputeHash(HashAlgorithm algorithm, byte[] bytes)
 		{

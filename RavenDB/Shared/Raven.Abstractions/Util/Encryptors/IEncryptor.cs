@@ -7,6 +7,8 @@ namespace Raven.Abstractions.Util.Encryptors
 	{
 		IHashEncryptor Hash { get; }
 
+		IHashEncryptor CreateHash();
+
 		ISymmetricalEncryptor CreateSymmetrical();
 
 		ISymmetricalEncryptor CreateSymmetrical(int keySize);
@@ -23,6 +25,8 @@ namespace Raven.Abstractions.Util.Encryptors
 		int StorageHashSize { get; }
 
 		byte[] ComputeForStorage(byte[] bytes);
+
+		byte[] ComputeForOAuth(byte[] bytes);
 
 		byte[] Compute(byte[] bytes);
 	}

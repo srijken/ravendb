@@ -115,13 +115,21 @@ namespace Raven.Bundles.Replication.Responders
 		private static string HashReplicationIdentifier(RavenJObject metadata, Guid lastEtag)
 		{
 			var bytes = Encoding.UTF8.GetBytes(metadata.Value<string>(Constants.RavenReplicationSource) + "/" + lastEtag);
-			return new Guid(Encryptor.Current.Hash.Compute(bytes)).ToString();
+
+			var hash = Encryptor.Current.Hash.Compute(bytes);
+			Array.Resize(ref hash, 16);
+
+			return new Guid(hash).ToString();
 		}
 
 		private string HashReplicationIdentifier(Guid existingEtag)
 		{
 			var bytes = Encoding.UTF8.GetBytes(Database.TransactionalStorage.Id + "/" + existingEtag);
-			return new Guid(Encryptor.Current.Hash.Compute(bytes)).ToString();
+
+			var hash = Encryptor.Current.Hash.Compute(bytes);
+			Array.Resize(ref hash, 16);
+
+			return new Guid(hash).ToString();
 		}
 
 		private static bool IsDirectChildOfCurrentAttachment(Attachment existingAttachment, RavenJObject metadata)
