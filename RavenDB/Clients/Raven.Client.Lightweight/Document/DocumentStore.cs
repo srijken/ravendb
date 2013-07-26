@@ -240,6 +240,8 @@ namespace Raven.Client.Document
 				DefaultDatabase = options.DefaultDatabase;
 			if (string.IsNullOrEmpty(options.ApiKey) == false)
 				ApiKey = options.ApiKey;
+			if (options.FailoverServers != null)
+				FailoverServers = options.FailoverServers;
 
 			EnlistInDistributedTransactions = options.EnlistInDistributedTransactions;
 		}
@@ -687,20 +689,32 @@ namespace Raven.Client.Document
 			{
 				key = MultiDatabase.GetRootDatabaseUrl(Url) + "/databases/" + dbName;
 			}
+			ReplicationInformer result;
+
 #if SILVERLIGHT || NETFX_CORE
 			lock (replicationInformersLocker)
 			{
-				ReplicationInformer result;
 				if (!replicationInformers.TryGetValue(key, out result))
 				{
 					result = Conventions.ReplicationInformerFactory(key);
 					replicationInformers.Add(key, result);
 				}
-				return result;
 			}
 #else
-			return replicationInformers.GetOrAdd(key, Conventions.ReplicationInformerFactory);
+			result  = replicationInformers.GetOrAdd(key, Conventions.ReplicationInformerFactory);
 #endif
+			if (dbName == DefaultDatabase)
+			{
+				if (FailoverServers.IsSetForDefaultDatabase && result.FailoverUrls == null)
+					result.FailoverUrls = FailoverServers.ForDefaultDatabase;
+			}
+			else
+			{
+				if (FailoverServers.IsSetForDatabase(dbName) && result.FailoverUrls == null)
+					result.FailoverUrls = FailoverServers.GetForDatabase(dbName);
+			}
+
+			return result;
 		}
 
 		/// <summary>

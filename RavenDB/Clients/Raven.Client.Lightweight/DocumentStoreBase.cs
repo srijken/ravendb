@@ -129,6 +129,12 @@ namespace Raven.Client
 		}
 
 		/// <summary>
+		/// Failover servers used by replication informers when cannot fetch the list of replication 
+		/// destinations if a master server is down.
+		/// </summary>
+		public FailoverServers FailoverServers { get; set; }
+
+		/// <summary>
 		/// Whenever or not we will use FIPS compliant encryption algorithms (must match server settings).
 		/// </summary>
 		public bool UseFipsEncryptionAlgorithms { get; set; }
