@@ -54,8 +54,6 @@ namespace Raven.Abstractions.Util.Encryptors
 	{
 		int KeySize { get; set; }
 
-		AsymmetricAlgorithm Algorithm { get; }
-
 		void ImportParameters(byte[] exponent, byte[] modulus);
 
 		byte[] Encrypt(byte[] bytes, bool fOAEP);
@@ -68,12 +66,17 @@ namespace Raven.Abstractions.Util.Encryptors
 
 		bool VerifyHash(byte[] hash, string str, byte[] signature);
 
-		void ImportParameters(RSAParameters parameters);
-
-		RSAParameters ExportParameters(bool includePrivateParameters);
-
 		byte[] Decrypt(byte[] bytes, bool fOAEP);
 
 		void FromXmlString(string xml);
+
+#if !SILVERLIGHT
+		AsymmetricAlgorithm Algorithm { get; }
+
+		void ImportParameters(RSAParameters parameters);
+
+		RSAParameters ExportParameters(bool includePrivateParameters);
+#endif
 	}
+
 }

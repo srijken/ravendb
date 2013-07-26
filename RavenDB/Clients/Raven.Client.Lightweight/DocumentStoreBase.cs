@@ -25,6 +25,10 @@ using Raven.Client.Util;
 
 namespace Raven.Client
 {
+	using System.Collections.Generic;
+
+	using Raven.Abstractions.Util.Encryptors;
+
 	/// <summary>
 	/// Contains implementation of some IDocumentStore operations shared by DocumentStore implementations
 	/// </summary>
@@ -305,17 +309,9 @@ namespace Raven.Client
 			return AggressivelyCacheFor(TimeSpan.FromDays(1));
 		}
 
-#if !SILVERLIGHT && !NETFX_CORE
 		protected void InitializeEncryptor()
 		{
-			var setting = ConfigurationManager.AppSettings["Raven/Encryption/FIPS"];
-
-			bool fips;
-			if (string.IsNullOrEmpty(setting) || !bool.TryParse(setting, out fips))
-				fips = UseFipsEncryptionAlgorithms;
-
-			Encryptor.Initialize(fips);
+			Encryptor.Initialize(UseFipsEncryptionAlgorithms);
 		}
-#endif
 	}
 }
