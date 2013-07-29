@@ -38,7 +38,7 @@ namespace Raven.Abstractions.Util.Encryptors
 
 			public byte[] ComputeForOAuth(byte[] bytes)
 			{
-				return Compute(bytes, 16);
+				return Compute(bytes);
 			}
 
 			public byte[] Compute(byte[] bytes)
