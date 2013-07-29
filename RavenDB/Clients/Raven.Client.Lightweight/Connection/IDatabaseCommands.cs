@@ -32,9 +32,14 @@ namespace Raven.Client.Connection
 		NameValueCollection OperationsHeaders { get; set; }
 
 		/// <summary>
-		/// Admin operations, like create/delete database.
+		/// Admin operations for current database
 		/// </summary>
 		IAdminDatabaseCommands Admin { get; }
+
+		/// <summary>
+		/// Admin operations performed against system database, like create/delete database
+		/// </summary>
+		IGlobalAdminDatabaseCommands GlobalAdmin { get; }
 
 		/// <summary>
 		/// Retrieves documents for the specified key prefix
@@ -497,9 +502,35 @@ namespace Raven.Client.Connection
 		void PrepareTransaction(string txId);
 	}
 
+	public interface IGlobalAdminDatabaseCommands
+	{
+		/// <summary>
+		/// Get admin statistics
+		/// </summary>
+		AdminStatistics GetStatistics();
+
+		/// <summary>
+		/// Creates a database
+		/// </summary>
+		void CreateDatabase(DatabaseDocument databaseDocument);
+
+		/// <summary>
+		/// Deteles a database with the specified name
+		/// </summary>
+		void DeleteDatabase(string dbName, bool hardDelete = false);
+	}
+
 	public interface IAdminDatabaseCommands
 	{
-		void CreateDatabase(DatabaseDocument databaseDocument);
+		/// <summary>
+		/// Disables all indexing
+		/// </summary>
+		void StopIndexing();
+
+		/// <summary>
+		/// Enables indexing
+		/// </summary>
+		void StartIndexing();
 	}
 }
 #endif

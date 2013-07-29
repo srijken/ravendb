@@ -35,10 +35,14 @@ namespace Raven.Client.Connection.Async
 		/// </summary>
 		/// <value>The operations headers.</value>
 		IDictionary<string, string> OperationsHeaders { get; }
+
+		/// <summary>
+		/// Admin operations performed against system database, like create/delete database
+		/// </summary>
 		IAsyncGlobalAdminDatabaseCommands GlobalAdmin { get; }
 
 		/// <summary>
-		/// Admin operations, like create/delete database.
+		/// Admin operations for current database
 		/// </summary>
 		IAsyncAdminDatabaseCommands Admin { get; }
 		
@@ -369,16 +373,6 @@ namespace Raven.Client.Connection.Async
 		Task StartRestoreAsync(string restoreLocation, string databaseLocation, string databaseName = null, bool defrag = false);
 
 		/// <summary>
-		/// Sends an async command that enables indexing
-		/// </summary>
-		Task StartIndexingAsync();
-
-		/// <summary>
-		/// Sends an async command that disables all indexing
-		/// </summary>
-		Task StopIndexingAsync();
-
-		/// <summary>
 		/// Get the indexing status
 		/// </summary>
 		Task<string> GetIndexingStatusAsync();
@@ -428,11 +422,29 @@ namespace Raven.Client.Connection.Async
 		/// </summary>
 		/// <returns></returns>
 		Task<AdminStatistics> GetStatisticsAsync();
+
+		/// <summary>
+		/// Sends an async command to create a database
+		/// </summary>
+		Task CreateDatabaseAsync(DatabaseDocument databaseDocument);
+
+		/// <summary>
+		/// Sends an async command to delete a database
+		/// </summary>
+		Task DeleteDatabaseAsync(string databaseName, bool hardDelete = false);
 	}
 	
 	public interface IAsyncAdminDatabaseCommands
 	{
-		Task CreateDatabaseAsync(DatabaseDocument databaseDocument);
+		/// <summary>
+		/// Sends an async command that disables all indexing
+		/// </summary>
+		Task StopIndexingAsync();
+
+		/// <summary>
+		/// Sends an async command that enables indexing
+		/// </summary>
+		Task StartIndexingAsync();
 	}
 
 	public interface IAsyncInfoDatabaseCommands
