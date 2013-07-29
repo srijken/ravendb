@@ -48,7 +48,7 @@ namespace Raven.Abstractions.Util.Encryptors
 			public byte[] ComputeForOAuth(byte[] bytes)
 			{
 #if !SILVERLIGHT
-				return ComputeHash(SHA1.Create(), bytes);
+				return ComputeHash(SHA1.Create(), bytes, 16);
 #else
 				throw new NotSupportedException();
 #endif
