@@ -49,6 +49,24 @@ namespace Raven.Client.Connection
 			innerServerClient.ExecuteWithReplication("POST", operationUrl => adminRequest.StartIndexing(operationUrl).ExecuteRequest());
 		}
 
+		public void StartBackup(string backupLocation, DatabaseDocument databaseDocument)
+		{
+			RavenJObject backupSettings;
+			var request = adminRequest.StartBackup(backupLocation, databaseDocument, out backupSettings);
+
+			request.Write(backupSettings.ToString(Formatting.None));
+			request.ExecuteRequest();
+		}
+
+		public void StartRestore(string restoreLocation, string databaseLocation, string databaseName = null, bool defrag = false)
+		{
+			RavenJObject restoreSettings;
+			var request = adminRequest.StartRestore(restoreLocation, databaseLocation, databaseName, defrag, out restoreSettings);
+
+			request.Write(restoreSettings.ToString(Formatting.None));
+			request.ExecuteRequest();
+		}
+
 		public AdminStatistics GetStatistics()
 		{
 			var json = (RavenJObject) adminRequest.AdminStats().ReadResponseJson();

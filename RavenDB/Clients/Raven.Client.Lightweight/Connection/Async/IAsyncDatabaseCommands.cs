@@ -363,16 +363,6 @@ namespace Raven.Client.Connection.Async
 		Task<BuildNumber> GetBuildNumberAsync();
 
 		/// <summary>
-		/// Begins an async backup operation
-		/// </summary>
-		Task StartBackupAsync(string backupLocation, DatabaseDocument databaseDocument);
-
-		/// <summary>
-		/// Begins an async restore operation
-		/// </summary>
-		Task StartRestoreAsync(string restoreLocation, string databaseLocation, string databaseName = null, bool defrag = false);
-
-		/// <summary>
 		/// Get the indexing status
 		/// </summary>
 		Task<string> GetIndexingStatusAsync();
@@ -445,6 +435,16 @@ namespace Raven.Client.Connection.Async
 		/// Sends an async command that enables indexing
 		/// </summary>
 		Task StartIndexingAsync();
+
+		/// <summary>
+		/// Begins an async backup operation
+		/// </summary>
+		Task StartBackupAsync(string backupLocation, DatabaseDocument databaseDocument);
+
+		/// <summary>
+		/// Begins an async restore operation
+		/// </summary>
+		Task StartRestoreAsync(string restoreLocation, string databaseLocation, string databaseName = null, bool defrag = false);
 	}
 
 	public interface IAsyncInfoDatabaseCommands

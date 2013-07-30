@@ -49,9 +49,25 @@ namespace Raven.Client.Connection.Async
 
 		public async Task<AdminStatistics> GetStatisticsAsync()
 		{
-			var json = (RavenJObject)await adminRequest.AdminStats().ReadResponseJsonAsync();
+			var json = (RavenJObject) await adminRequest.AdminStats().ReadResponseJsonAsync();
 
 			return json.Deserialize<AdminStatistics>(innerAsyncServerClient.convention);
+		}
+
+		public Task StartBackupAsync(string backupLocation, DatabaseDocument databaseDocument)
+		{
+			RavenJObject backupSettings;
+			var request = adminRequest.StartBackup(backupLocation, databaseDocument, out backupSettings);
+
+			return request.ExecuteWriteAsync(backupSettings.ToString(Formatting.None));
+		}
+
+		public Task StartRestoreAsync(string restoreLocation, string databaseLocation, string databaseName = null, bool defrag = false)
+		{
+			RavenJObject restoreSettings;
+			var request = adminRequest.StartRestore(restoreLocation, databaseLocation, databaseName, defrag, out restoreSettings);
+
+			return request.ExecuteWriteAsync(restoreSettings.ToString(Formatting.None));
 		}
 	}
 }

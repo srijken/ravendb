@@ -66,5 +66,28 @@ namespace Raven.Client.Connection
 		{
 			return createRequestForSystemDatabase("/admin/stats", "GET");
 		}
+
+		public HttpJsonRequest StartBackup(string backupLocation, DatabaseDocument databaseDocument, out  RavenJObject backupSettings)
+		{
+			backupSettings = new RavenJObject
+			{
+				{"BackupLocation", backupLocation},
+				{"DatabaseDocument", RavenJObject.FromObject(databaseDocument)}
+			};
+
+			return createRequest("/admin/backup", "POST");
+		}
+
+		public HttpJsonRequest StartRestore(string restoreLocation, string databaseLocation, string databaseName, bool defrag, out RavenJObject restoreSettings)
+		{
+			restoreSettings = new RavenJObject
+			{
+				{"RestoreLocation", restoreLocation},
+				{"DatabaseLocation", databaseLocation},
+				{"DatabaseName", databaseName}
+			};
+
+			return createRequest("/admin/restore?defrag=" + defrag, "POST");
+		}
 	}
 }
