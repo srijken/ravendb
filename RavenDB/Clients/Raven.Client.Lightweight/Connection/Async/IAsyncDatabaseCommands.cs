@@ -363,11 +363,6 @@ namespace Raven.Client.Connection.Async
 		Task<BuildNumber> GetBuildNumberAsync();
 
 		/// <summary>
-		/// Get the indexing status
-		/// </summary>
-		Task<string> GetIndexingStatusAsync();
-
-		/// <summary>
 		/// Get documents with id of a specific prefix
 		/// </summary>
 		Task<JsonDocument[]> StartsWithAsync(string keyPrefix, int start, int pageSize, bool metadataOnly = false);
@@ -445,6 +440,11 @@ namespace Raven.Client.Connection.Async
 		/// Begins an async restore operation
 		/// </summary>
 		Task StartRestoreAsync(string restoreLocation, string databaseLocation, string databaseName = null, bool defrag = false);
+
+		/// <summary>
+		/// Get the indexing status
+		/// </summary>
+		Task<string> GetIndexingStatusAsync();
 	}
 
 	public interface IAsyncInfoDatabaseCommands

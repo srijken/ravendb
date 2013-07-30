@@ -67,6 +67,16 @@ namespace Raven.Client.Connection
 			request.ExecuteRequest();
 		}
 
+		public string GetIndexingStatus()
+		{
+			return innerServerClient.ExecuteWithReplication("GET", operationUrl =>
+			{
+				var result = adminRequest.IndexingStatus(operationUrl).ReadResponseJson();
+
+				return result.Value<string>("IndexingStatus");
+			});
+		}
+
 		public AdminStatistics GetStatistics()
 		{
 			var json = (RavenJObject) adminRequest.AdminStats().ReadResponseJson();

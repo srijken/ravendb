@@ -89,5 +89,10 @@ namespace Raven.Client.Connection
 
 			return createRequest("/admin/restore?defrag=" + defrag, "POST");
 		}
+
+		public HttpJsonRequest IndexingStatus(string serverUrl)
+		{
+			return createReplicationAwareRequest(serverUrl, "/admin/IndexingStatus", "GET");
+		}
 	}
 }

@@ -938,22 +938,6 @@ namespace Raven.Client.Connection.Async
 			};
 		}
 
-		public Task<string> GetIndexingStatusAsync()
-		{
-			return ExecuteWithReplication("GET", async operationUrl =>
-			{
-				var request =
-					jsonRequestFactory.CreateHttpJsonRequest(new CreateHttpJsonRequestParams(this,
-					                                                                         (operationUrl + "/admin/IndexingStatus").
-						                                                                         NoCache(), "GET", credentials, convention));
-				request.AddOperationHeaders(OperationsHeaders);
-				request.AddReplicationStatusHeaders(url, operationUrl, replicationInformer, convention.FailoverBehavior, HandleReplicationStatusChanges);
-
-				var result = await request.ReadResponseJsonAsync();
-				return result.Value<string>("IndexingStatus");
-			});
-		}
-
 		public Task<JsonDocument[]> StartsWithAsync(string keyPrefix, int start, int pageSize, bool metadataOnly = false)
 		{
 			return ExecuteWithReplication("GET", async operationUrl =>
@@ -1618,7 +1602,7 @@ namespace Raven.Client.Connection.Async
 		private bool resolvingConflict;
 		private bool resolvingConflictRetries;
 
-		private async Task<T> ExecuteWithReplication<T>(string method, Func<string, Task<T>> operation)
+		internal async Task<T> ExecuteWithReplication<T>(string method, Func<string, Task<T>> operation)
 		{
 			var currentRequest = Interlocked.Increment(ref requestCount);
 			if (currentlyExecuting && convention.AllowMultipuleAsyncOperations == false)

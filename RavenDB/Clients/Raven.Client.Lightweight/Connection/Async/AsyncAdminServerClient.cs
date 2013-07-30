@@ -69,5 +69,15 @@ namespace Raven.Client.Connection.Async
 
 			return request.ExecuteWriteAsync(restoreSettings.ToString(Formatting.None));
 		}
+
+		public Task<string> GetIndexingStatusAsync()
+		{
+			return innerAsyncServerClient.ExecuteWithReplication("GET", async operationUrl =>
+			{
+				var result = await adminRequest.IndexingStatus(operationUrl).ReadResponseJsonAsync();
+
+				return result.Value<string>("IndexingStatus");
+			});
+		}
 	}
 }

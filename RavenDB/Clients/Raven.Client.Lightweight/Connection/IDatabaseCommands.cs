@@ -541,6 +541,11 @@ namespace Raven.Client.Connection
 		/// Begins a restore operation
 		/// </summary>
 		void StartRestore(string restoreLocation, string databaseLocation, string databaseName = null, bool defrag = false);
+
+		/// <summary>
+		/// Get the indexing status
+		/// </summary>
+		string GetIndexingStatus();
 	}
 }
 #endif

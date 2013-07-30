@@ -92,10 +92,10 @@ namespace Raven.Tests.Issues
 			{
 				store.DatabaseCommands.Admin.StopIndexing();
 
-				Assert.Equal("Paused", store.AsyncDatabaseCommands.GetIndexingStatusAsync().Result); // TODO arek - provide sync method for this
+				Assert.Equal("Paused", store.DatabaseCommands.Admin.GetIndexingStatus());
 
 				store.DatabaseCommands.Admin.StartIndexing();
-				Assert.Equal("Indexing", store.AsyncDatabaseCommands.GetIndexingStatusAsync().Result);
+				Assert.Equal("Indexing", store.DatabaseCommands.Admin.GetIndexingStatus());
 			}
 		}
 
@@ -106,10 +106,10 @@ namespace Raven.Tests.Issues
 			{
 				await store.AsyncDatabaseCommands.Admin.StopIndexingAsync();
 
-				Assert.Equal("Paused", await store.AsyncDatabaseCommands.GetIndexingStatusAsync());
+				Assert.Equal("Paused", await store.AsyncDatabaseCommands.Admin.GetIndexingStatusAsync());
 
 				await store.AsyncDatabaseCommands.Admin.StartIndexingAsync();
-				Assert.Equal("Indexing", await store.AsyncDatabaseCommands.GetIndexingStatusAsync());
+				Assert.Equal("Indexing", await store.AsyncDatabaseCommands.Admin.GetIndexingStatusAsync());
 			}
 		}
 
