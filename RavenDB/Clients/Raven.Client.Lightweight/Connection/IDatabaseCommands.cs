@@ -518,6 +518,11 @@ namespace Raven.Client.Connection
 		/// Deteles a database with the specified name
 		/// </summary>
 		void DeleteDatabase(string dbName, bool hardDelete = false);
+
+		/// <summary>
+		/// Sends an async command to compact a database. During the compaction the specified database will be offline.
+		/// </summary>
+		void CompactDatabase(string databaseName);
 	}
 
 	public interface IAdminDatabaseCommands

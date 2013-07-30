@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Raven.Abstractions.Data;
 using Raven.Client.Extensions;
+using Raven.Json.Linq;
 using Xunit;
 
 namespace Raven.Tests.Issues
@@ -132,6 +133,40 @@ namespace Raven.Tests.Issues
 				var adminStatistics = await store.AsyncDatabaseCommands.GlobalAdmin.GetStatisticsAsync();
 
 				Assert.NotNull(adminStatistics);
+			}
+		}
+
+		[Fact]
+		public void CanCompactDatabase()
+		{
+			using (var store = NewRemoteDocumentStore(runInMemory: false))
+			{
+				const string dbName = "RavenDB_999_Compact";
+
+				store.DatabaseCommands.Admin.EnsureDatabaseExists(dbName);
+
+				store.DatabaseCommands.Put("keys/1", null, new RavenJObject() { { "test", "test" } }, new RavenJObject());
+
+				store.DatabaseCommands.GlobalAdmin.CompactDatabase(dbName);
+
+				Assert.NotNull(store.DatabaseCommands.Get("keys/1"));
+			}
+		}
+
+		[Fact]
+		public async Task CanCompactDatabaseAsync()
+		{
+			using (var store = NewRemoteDocumentStore(runInMemory: false))
+			{
+				const string dbName = "RavenDB_999_CompactAsync";
+
+				await store.AsyncDatabaseCommands.Admin.EnsureDatabaseExistsAsync(dbName);
+
+				await store.AsyncDatabaseCommands.PutAsync("keys/1", null, new RavenJObject() {{"test", "test"}}, new RavenJObject());
+
+				await store.AsyncDatabaseCommands.GlobalAdmin.CompactDatabaseAsync(dbName);
+
+				Assert.NotNull(await store.AsyncDatabaseCommands.GetAsync("keys/1"));
 			}
 		}
 	}

@@ -37,6 +37,11 @@ namespace Raven.Client.Connection.Async
 			return adminRequest.DeleteDatabase(databaseName, hardDelete).ExecuteRequestAsync();
 		}
 
+		public Task CompactDatabaseAsync(string databaseName)
+		{
+			return adminRequest.CompactDatabase(databaseName).ExecuteRequestAsync();
+		}
+
 		public Task StopIndexingAsync()
 		{
 			return innerAsyncServerClient.ExecuteWithReplication("POST", operationUrl => adminRequest.StopIndexing(operationUrl).ExecuteRequestAsync());

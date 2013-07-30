@@ -94,5 +94,10 @@ namespace Raven.Client.Connection
 		{
 			return createReplicationAwareRequest(serverUrl, "/admin/IndexingStatus", "GET");
 		}
+
+		public HttpJsonRequest CompactDatabase(string databaseName)
+		{
+			return createRequestForSystemDatabase("/admin/compact?database=" + databaseName, "POST");
+		}
 	}
 }

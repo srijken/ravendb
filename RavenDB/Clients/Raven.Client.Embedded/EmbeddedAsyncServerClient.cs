@@ -303,6 +303,11 @@ namespace Raven.Client.Embedded
 			throw new NotSupportedException("Multiple databases are not supported in the embedded API currently");
 		}
 
+		public Task CompactDatabaseAsync(string databaseName)
+		{
+			throw new NotSupportedException("Multiple databases are not supported in the embedded API currently");
+		}
+
 		public Task<string[]> GetDatabaseNamesAsync(int pageSize, int start = 0)
 		{
 			return new CompletedTask<string[]>(databaseCommands.GetDatabaseNames(pageSize, start));

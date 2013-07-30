@@ -39,6 +39,11 @@ namespace Raven.Client.Connection
 			adminRequest.DeleteDatabase(databaseName, hardDelete).ExecuteRequest();
 		}
 
+		public void CompactDatabase(string databaseName)
+		{
+			adminRequest.CompactDatabase(databaseName).ExecuteRequest();
+		}
+
 		public void StopIndexing()
 		{
 			innerServerClient.ExecuteWithReplication("POST", operationUrl => adminRequest.StopIndexing(operationUrl).ExecuteRequest());

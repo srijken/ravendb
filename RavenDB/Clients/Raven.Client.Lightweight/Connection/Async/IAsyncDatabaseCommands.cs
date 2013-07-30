@@ -417,6 +417,11 @@ namespace Raven.Client.Connection.Async
 		/// Sends an async command to delete a database
 		/// </summary>
 		Task DeleteDatabaseAsync(string databaseName, bool hardDelete = false);
+
+		/// <summary>
+		/// Sends an async command to compact a database. During the compaction the specified database will be offline.
+		/// </summary>
+		Task CompactDatabaseAsync(string databaseName);
 	}
 	
 	public interface IAsyncAdminDatabaseCommands
