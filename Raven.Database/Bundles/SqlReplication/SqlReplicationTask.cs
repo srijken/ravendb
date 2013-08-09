@@ -385,6 +385,9 @@ namespace Raven.Database.Bundles.SqlReplication
 			}
 			var calculateSynchronizationEtag = etagSynchronizer.CalculateSynchronizationEtag(synchronizationEtag, leastReplicatedEtag);
 
+            if (calculateSynchronizationEtag == lastLatestEtag)
+                return calculateSynchronizationEtag.IncrementBy(1);
+
 			return calculateSynchronizationEtag;
 		}
 
