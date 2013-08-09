@@ -181,7 +181,7 @@ CREATE TABLE [dbo].[Orders]
                     using (var dbCommand = con.CreateCommand())
                     {
                         dbCommand.CommandText = " SELECT COUNT(*) FROM Orders";
-                        Assert.Equal(1025, dbCommand.ExecuteScalar());
+                        Assert.Equal(testCount, dbCommand.ExecuteScalar());
                     }
                 }
             }
